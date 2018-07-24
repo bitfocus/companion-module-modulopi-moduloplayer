@@ -41,7 +41,7 @@ instance.prototype.init_tcp = function() {
 	}
 
 	if (self.config.host) {
-		self.socket = new tcp(self.config.host, 28670);
+		self.socket = new tcp(self.config.host, 28686);
 
 		self.socket.on('status_change', function (status, message) {
 			self.status(status, message);
@@ -135,7 +135,7 @@ instance.prototype.action = function(action) {
 			cmd = 'launchTask?'+ opt.task;
 			break;
 
-		case 'launch a cue on a playlist':
+		case 'launchCue':
 			cmd = 'playItem?' + opt.pl + '?' + opt.cue;
 			break;
 
