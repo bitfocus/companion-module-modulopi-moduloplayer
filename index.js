@@ -120,6 +120,28 @@ instance.prototype.actions = function(system) {
 					regex: self.REGEX_NUMBER
 				}
 			 ]
+		},
+		'nextCue': {
+			label: 'Next Cue on PlayList (ID)',
+			options: [
+				{
+					type: 'textinput',
+					label: 'Playlist ID',
+					id: 'pl',
+					regex: self.REGEX_NUMBER
+				}
+			]
+		},
+		'previousCue': {
+			label: 'Previous Cue on PlayList (ID)',
+			options: [
+				{
+					type: 'textinput',
+					label: 'Playlist ID',
+					id: 'pl',
+					regex: self.REGEX_NUMBER
+				}
+			]
 		 }
 	});
 };
@@ -138,7 +160,14 @@ instance.prototype.action = function(action) {
 		case 'launchCue':
 			cmd = 'playItem?' + opt.pl + '?' + opt.cue;
 			break;
+			
+		case 'nextCue':
+			cmd = 'playnextcue?' + opt.pl;
+			break;
 
+		case 'previousCue':
+			cmd = 'playpreviouscue?' + opt.pl;
+			break;
 	};
 
 
