@@ -16,12 +16,12 @@
 	},
 	"author": "Per Røine <per.roine@gmail.com>",
 	"license": "MIT",
-	"homepage": "https://github.com/bitfocus/companion-module-modulo#readme",
+	"homepage": "https://github.com/bitfocus/companion-module-modulopi-moduloplayer#readme",
 	"bugs": {
-		"url": "https://github.com/bitfocus/companion-module-modulo/issues"
+		"url": "https://github.com/bitfocus/companion-module-modulopi-moduloplayer/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/bitfocus/companion-module-modulo.git"
+		"url": "git+https://github.com/bitfocus/companion-module-modulopi-moduloplayer.git"
 	}
 }
