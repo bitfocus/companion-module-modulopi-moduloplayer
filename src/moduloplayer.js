@@ -27,7 +27,7 @@ module.exports = {
 			let cl = {}
 			cl.id = i + 1
 			cl.uuid = val[0].toString()
-			cl.name = val[1] != "" ? `${val[1].toString()}` : `Cue\n${i + 1}`
+			cl.name = val[1] != "" ? `${val[1]}` : `Cue\n${i + 1}`
 			cuesList.push(cl)
 		}
 		this.moduloPlayerData.tmpCueList.push(cuesList)
