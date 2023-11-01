@@ -1,27 +1,20 @@
 {
-	"name": "modulopi-moduloplayer",
-	"version": "1.0.4",
-	"api_version": "1.0.0",
-	"keywords": [
-		"Software",
-		"Media Server"
-	],
-	"manufacturer": "Modulo",
-	"product": "Media Server",
-	"shortname": "modulo",
-	"description": "Module to contol Modulo Media server ",
-	"main": "index.js",
+	"name": "moduloplayer",
+	"version": "2.0.2",
+	"main": "main.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"format": "prettier -w ."
 	},
-	"author": "Per Røine <per.roine@gmail.com>",
 	"license": "MIT",
-	"homepage": "https://github.com/bitfocus/companion-module-modulopi-moduloplayer#readme",
-	"bugs": {
-		"url": "https://github.com/bitfocus/companion-module-modulopi-moduloplayer/issues"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/bitfocus/companion-module-modulopi-moduloplayer.git"
-	}
+	},
+	"dependencies": {
+		"@companion-module/base": "~1.4.3"
+	},
+	"devDependencies": {
+		"@companion-module/tools": "^1.3.2"
+	},
+	"prettier": "@companion-module/tools/.prettierrc.json"
 }
