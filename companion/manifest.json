@@ -26,5 +26,8 @@
 	"legacyIds": ["modulo"],
 	"manufacturer": "Modulo Pi",
 	"products": ["Modulo Player"],
-	"keywords": ["Software", "Media Server"]
+	"keywords": [
+		"Software",
+		"Media Server"
+	]
 }

@@ -1,4 +1,5 @@
 module.exports = function getActions(self) {
+
 	const actions = {}
 
 	actions['launch_task'] = {
@@ -133,15 +134,15 @@ module.exports = function getActions(self) {
 			const minLevel = 0.0
 			const maxLevel = 100.0
 			let currentValue = self.getVariableValue('pl_fader')
-			console.log('Fader VALUES >>> ' + currentValue + ' ' + event.options.stepSize)
-			let newValue = currentValue + event.options.stepSize
+			console.log('Fader VALUES >>> ' + currentValue + " " + event.options.stepSize)
+			let newValue = (currentValue + event.options.stepSize)
 			if (newValue < minLevel) {
 				newValue = minLevel
 			} else if (newValue > maxLevel) {
 				newValue = maxLevel
 			}
 			self.setVariableValues({ pl_fader: parseInt(newValue) })
-			console.log('Variable Fader >>> ' + newValue + ' / ' + parseFloat(newValue / 100))
+			console.log('Variable Fader >>> ' + newValue + " / " + parseFloat(newValue / 100))
 			await self.sendCommand('setFaderPlayList?' + event.options.pl + '?' + parseFloat(newValue / 100))
 		},
 	}
@@ -192,4 +193,4 @@ module.exports = function getActions(self) {
 		},
 	}
 	return actions
-}
+};

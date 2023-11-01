@@ -27,15 +27,15 @@ module.exports = {
 			let cl = {}
 			cl.id = i + 1
 			cl.uuid = val[0].toString()
-			cl.name = val[1] != '' ? `${val[1]}` : `Cue\n${i + 1}`
+			cl.name = val[1] != "" ? `${val[1]}` : `Cue\n${i + 1}`
 			cuesList.push(cl)
 		}
 		this.moduloPlayerData.tmpCueList.push(cuesList)
-		this.plCount += 1
+        this.plCount += 1
 		if (this.plCount === this.moduloPlayerData.playList.length) {
 			this.moduloPlayerData.cuesList = this.moduloPlayerData.tmpCueList
 			this.socket.emit('refresh')
-		}
+		} 
 	},
 
 	getAllTaskList(data) {
@@ -55,7 +55,7 @@ module.exports = {
 	},
 
 	setPlayListCurrentCueIndex(data, self) {
-		let valueString = data.toString().split('?')
+		let valueString = data.toString().split("?")
 		let plIndex = valueString[1]
 		let cueIndex = valueString[2]
 		let res = {}

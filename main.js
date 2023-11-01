@@ -91,6 +91,7 @@ class ModuloPlayerInstance extends InstanceBase {
 		this.setVariableDefinitions(getVariables(this.moduloPlayerData))
 		this.getPlayListCueIndexFromModuloPlayer()
 	}
+	
 
 	async getPlayListFromModuloPlayer() {
 		await this.sendCommand('getallplaylistswithuuid')
@@ -115,8 +116,8 @@ class ModuloPlayerInstance extends InstanceBase {
 	}
 
 	/**
-	 * Create pollers for fetching data from ModuloPlayer
-	 */
+  	* Create pollers for fetching data from ModuloPlayer
+  	*/
 	moduloPlayPoller() {
 		if (this.config) {
 			if (this.config.pollingInterval === 0) {
@@ -190,12 +191,12 @@ class ModuloPlayerInstance extends InstanceBase {
 
 				if (data.toString().slice(0, data.toString().lastIndexOf('?')) === 'alltaskswithuuid') {
 					this.getAllTaskList(data)
-					this.getPlayListFromModuloPlayer().then(() => {})
+					this.getPlayListFromModuloPlayer().then(() => { })
 				}
 
 				if (data.toString().slice(0, data.toString().lastIndexOf('?')) === 'allplaylistswithuuid') {
 					this.getPlayList(data)
-					this.getCuesListFromModuloPlayer().then(() => {})
+					this.getCuesListFromModuloPlayer().then(() => { })
 				}
 
 				if (data.toString().slice(0, 15) === 'allcueswithuuid') {
@@ -207,7 +208,8 @@ class ModuloPlayerInstance extends InstanceBase {
 					this.setPlayListCurrentCueIndex(data, this)
 				}
 
-				if (data.toString() === 'RescanDone') {
+			
+				if (data.toString() === "RescanDone") {
 					this.log('info', `TCP CONTROL | RescanDone`)
 				}
 			})

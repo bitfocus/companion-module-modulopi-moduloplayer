@@ -17,16 +17,16 @@ module.exports = async function (self) {
 					label: 'ID',
 					default: 1,
 				},
-				{
-					id: 'pl',
-					type: 'number',
-					label: 'Playlist ID',
-					default: 1,
-				},
+                {
+                    id: 'pl',
+                    type: 'number',
+                    label: 'Playlist ID',
+                    default: 1,
+                },
 			],
 			callback: (feedback) => {
 				//console.log('FEEDBACK | Current Cue ID Change State: ' + self.moduloPlayerData.states[`pl_${feedback.options.pl}_currentIndex`] + " / id: " + feedback.options.current_Cue)
-				if (self.moduloPlayerData.states[`pl_${feedback.options.pl}_currentIndex`] === feedback.options.current_Cue) {
+				if ( self.moduloPlayerData.states[`pl_${feedback.options.pl}_currentIndex`] === feedback.options.current_Cue) {
 					return true
 				}
 			},
