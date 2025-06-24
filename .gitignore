@@ -1,2 +1,9 @@
 node_modules/
-old/
+package-lock.json
+/pkg
+/pkg.tgz
+/dist
+DEBUG-*
+/.yarn
+version_javascript/
+.DS_Store
