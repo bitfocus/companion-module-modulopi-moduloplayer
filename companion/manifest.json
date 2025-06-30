@@ -3,7 +3,7 @@
 	"name": "modulopi-moduloplayer",
 	"shortname": "Modulo Player",
 	"description": "Modulo Player plugin for Companion",
-	"version": "4.0.0",
+	"version": "0.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-modulopi-moduloplayer.git",
 	"bugs": "https://github.com/bitfocus/companion-module-modulopi-moduloplayer/issues",
