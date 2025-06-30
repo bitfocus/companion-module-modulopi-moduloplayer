@@ -1,6 +1,6 @@
 {
 	"name": "modulopi-moduloplayer",
-	"version": "4.0.0",
+	"version": "4.0.2",
 	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
