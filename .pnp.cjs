@@ -28,7 +28,7 @@ const RAW_RUNTIME_STATE =
       [null, {\
         "packageLocation": "./",\
         "packageDependencies": [\
-          ["@companion-module/base", "npm:1.11.3"],\
+          ["@companion-module/base", "npm:1.12.1"],\
           ["@companion-module/tools", "virtual:3eba261328f1a5e7d51da6068b87cca61be8c97f6637fc9e3d515ccb391b68063591457c0b5f197fe141e3e7aff3a8cbdf021cf4392d3b5d09eb81970bd20ed3#npm:2.3.0"],\
           ["@types/node", "npm:22.15.31"],\
           ["@types/ws", "npm:8.18.1"],\
@@ -46,10 +46,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@companion-module/base", [\
-      ["npm:1.11.3", {\
-        "packageLocation": "../../../../.yarn/berry/cache/@companion-module-base-npm-1.11.3-12d54d87b4-10c0.zip/node_modules/@companion-module/base/",\
+      ["npm:1.12.1", {\
+        "packageLocation": "../../../../.yarn/berry/cache/@companion-module-base-npm-1.12.1-7a82e20b14-10c0.zip/node_modules/@companion-module/base/",\
         "packageDependencies": [\
-          ["@companion-module/base", "npm:1.11.3"],\
+          ["@companion-module/base", "npm:1.12.1"],\
           ["ajv", "npm:8.17.1"],\
           ["colord", "npm:2.9.3"],\
           ["ejson", "npm:2.2.3"],\
@@ -74,7 +74,7 @@ const RAW_RUNTIME_STATE =
       ["virtual:3eba261328f1a5e7d51da6068b87cca61be8c97f6637fc9e3d515ccb391b68063591457c0b5f197fe141e3e7aff3a8cbdf021cf4392d3b5d09eb81970bd20ed3#npm:2.3.0", {\
         "packageLocation": "./.yarn/__virtual__/@companion-module-tools-virtual-fc91a08c85/5/.yarn/berry/cache/@companion-module-tools-npm-2.3.0-24190fe6bd-10c0.zip/node_modules/@companion-module/tools/",\
         "packageDependencies": [\
-          ["@companion-module/base", "npm:1.11.3"],\
+          ["@companion-module/base", "npm:1.12.1"],\
           ["@companion-module/tools", "virtual:3eba261328f1a5e7d51da6068b87cca61be8c97f6637fc9e3d515ccb391b68063591457c0b5f197fe141e3e7aff3a8cbdf021cf4392d3b5d09eb81970bd20ed3#npm:2.3.0"],\
           ["@eslint/js", "npm:9.29.0"],\
           ["@types/companion-module__base", null],\
@@ -2759,7 +2759,7 @@ const RAW_RUNTIME_STATE =
       ["workspace:.", {\
         "packageLocation": "./",\
         "packageDependencies": [\
-          ["@companion-module/base", "npm:1.11.3"],\
+          ["@companion-module/base", "npm:1.12.1"],\
           ["@companion-module/tools", "virtual:3eba261328f1a5e7d51da6068b87cca61be8c97f6637fc9e3d515ccb391b68063591457c0b5f197fe141e3e7aff3a8cbdf021cf4392d3b5d09eb81970bd20ed3#npm:2.3.0"],\
           ["@types/node", "npm:22.15.31"],\
           ["@types/ws", "npm:8.18.1"],\
