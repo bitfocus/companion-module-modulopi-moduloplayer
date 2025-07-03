@@ -23,7 +23,7 @@
 		"yarn": "^4"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.12.0",
+		"@companion-module/base": "~1.11.3",
 		"ws": "^8.18.0"
 	},
 	"devDependencies": {
