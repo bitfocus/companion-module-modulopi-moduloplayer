@@ -4,6 +4,8 @@ package-lock.json
 /pkg.tgz
 /dist
 DEBUG-*
-/.yarn
+/.yarn/*
+!/.yarn/releases
+!/.yarn/install-state.gz
 version_javascript/
 .DS_Store
