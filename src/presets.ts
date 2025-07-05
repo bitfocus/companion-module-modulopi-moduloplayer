@@ -253,6 +253,51 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 				feedbacks: [],
 			})
 
+			// GRAND MASTER LIVE
+			playlistsPresets.push({
+				category: `${playlist + 1} - ${plName}`,
+				name: `${plName}\nGM\nRotate`,
+				type: 'button',
+				options: {
+					rotaryActions: true,
+				},
+				style: {
+					text: `${plName}\nGM\nRotate`,
+					size: textSize,
+					color: combineRgb(255, 255, 255),
+					bgcolor: instance.grayModuloPlayer,
+				},
+				steps: [
+					{
+						down: [],
+						up: [],
+						rotate_left: [
+							{
+								actionId: 'grand_master_fader_remove',
+								options: {
+									value: 1,
+									duration: 0,
+									plUUID: `${plID}`,
+									pl: playlist.toString(),
+								},
+							},
+						],
+						rotate_right: [
+							{
+								actionId: 'grand_master_fader_add',
+								options: {
+									value: 1,
+									duration: 0,
+									plUUID: `${plID}`,
+									pl: playlist.toString(),
+								},
+							},
+						],
+					},
+				],
+				feedbacks: [],
+			})
+
 			// AUDIO MASTER 0%
 			playlistsPresets.push({
 				category: `${playlist + 1} - ${plName}`,
@@ -308,6 +353,51 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 							},
 						],
 						up: [],
+					},
+				],
+				feedbacks: [],
+			})
+
+			// AUDIO MASTER LIVE
+			playlistsPresets.push({
+				category: `${playlist + 1} - ${plName}`,
+				name: `${plName}\nAM\nRotate`,
+				type: 'button',
+				options: {
+					rotaryActions: true,
+				},
+				style: {
+					text: `${plName}\nAM\nRotate`,
+					size: textSize,
+					color: combineRgb(255, 255, 255),
+					bgcolor: instance.grayModuloPlayer,
+				},
+				steps: [
+					{
+						down: [],
+						up: [],
+						rotate_left: [
+							{
+								actionId: 'audio_master_remove',
+								options: {
+									value: 1,
+									duration: 0,
+									plUUID: `${plID}`,
+									pl: playlist.toString(),
+								},
+							},
+						],
+						rotate_right: [
+							{
+								actionId: 'audio_master_add',
+								options: {
+									value: 1,
+									duration: 0,
+									plUUID: `${plID}`,
+									pl: playlist.toString(),
+								},
+							},
+						],
 					},
 				],
 				feedbacks: [],
@@ -433,7 +523,62 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					],
 				})
 			}
+
+			// VARIABLES
+			playlistsPresets.push({
+				category: `${playlist + 1} - ${plName}`,
+				name: `Variables`,
+				type: 'text',
+				//text: 'Goto',
+			})
+
+			// GRAND MASTER VARIABLES //$(Modulo_Player:pl_${instance.cleanUUID(plID)}_grandMasterFader)
+			playlistsPresets.push({
+				category: `${playlist + 1} - ${plName}`,
+				name: `${plName}\nGM\n$(Modulo_Player:pl_${plID}_grandMasterFader)`,
+				type: 'button',
+				options: {
+					rotaryActions: true,
+				},
+				style: {
+					text: `${plName}\nGM\n$(Modulo_Player:pl_${instance.cleanUUID(plID)}_grandMasterFader)`,
+					size: textSize,
+					color: combineRgb(255, 255, 255),
+					bgcolor: instance.grayModuloPlayer,
+				},
+				steps: [
+					{
+						down: [],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			})
+
+			// GRAND MASTER VARIABLES //$(Modulo_Player:pl_${instance.cleanUUID(plID)}_grandMasterFader)
+			playlistsPresets.push({
+				category: `${playlist + 1} - ${plName}`,
+				name: `${plName}\nAM\n$(Modulo_Player:pl_${plID}_audioMaster)`,
+				type: 'button',
+				options: {
+					rotaryActions: true,
+				},
+				style: {
+					text: `${plName}\nAM\n$(Modulo_Player:pl_${instance.cleanUUID(plID)}_audioMaster)`,
+					size: textSize,
+					color: combineRgb(255, 255, 255),
+					bgcolor: instance.grayModuloPlayer,
+				},
+				steps: [
+					{
+						down: [],
+						up: [],
+					},
+				],
+				feedbacks: [],
+			})
 		}
+
 		//instance.log("warn", "GET TASKS PRESETS 1 >>> " + tasksPresets.length)
 		return playlistsPresets
 	}
@@ -587,6 +732,107 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 		})
 
 		return showPresets
+	}
+
+	const getSpydogPresets = (): mpPresetArray => {
+		const spydogPresets: mpPresetArray = []
+
+		// REBOOT
+		spydogPresets.push({
+			category: `Spydog`,
+			name: `Reboot Server`,
+			type: 'button',
+			style: {
+				text: `Reboot Server`,
+				size: textSize,
+				color: combineRgb(255, 255, 255),
+				bgcolor: instance.redModuloPlayer,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'spydog_reboot_mp',
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		})
+
+		// POWER OFF
+		spydogPresets.push({
+			category: `Spydog`,
+			name: `Power Off Server`,
+			type: 'button',
+			style: {
+				text: `Power Off Server`,
+				size: textSize,
+				color: combineRgb(255, 255, 255),
+				bgcolor: instance.redModuloPlayer,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'spydog_power_off_mp',
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		})
+
+		// RESTART MODULO PLAYER
+		spydogPresets.push({
+			category: `Spydog`,
+			name: `Start Modulo Player`,
+			type: 'button',
+			style: {
+				text: `Start Modulo Player`,
+				size: textSize,
+				color: combineRgb(255, 255, 255),
+				bgcolor: instance.greenModuloPlayer,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'spydog_start_mp',
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		})
+		// STOP MODULO PLAYER
+		spydogPresets.push({
+			category: `Spydog`,
+			name: `Stop Modulo Player`,
+			type: 'button',
+			style: {
+				text: `Stop Modulo Player`,
+				size: textSize,
+				color: combineRgb(255, 255, 255),
+				bgcolor: instance.orangeModuloPlayer,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'spydog_stop_mp',
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		})
+
+		return spydogPresets
 	}
 
 	// VARIABLES CUES
@@ -870,9 +1116,15 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 
 	let presets: mpPresetArray = []
 	if (instance.sdConnected) {
-		presets = [...getTasksPresets(), ...getPlayListsCuesPresets(), ...getShowPresets(), ...getVariablesPresets()]
+		presets = [
+			...getTasksPresets(),
+			...getPlayListsCuesPresets(),
+			...getShowPresets(),
+			...getSpydogPresets(),
+			...getVariablesPresets(),
+		]
 	} else {
-		presets = [...getTasksPresets(), ...getPlayListsCuesPresets(), ...getShowPresets()]
+		presets = [...getTasksPresets(), ...getPlayListsCuesPresets(), ...getShowPresets(), ...getVariablesPresets()]
 	}
 
 	return presets as unknown as CompanionPresetDefinitions

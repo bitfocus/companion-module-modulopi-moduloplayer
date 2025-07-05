@@ -21,18 +21,6 @@ export class SpyDog {
 		}
 	}
 
-	async getStaticInfo() {
-		//this.instance.log('info', 'SPYDOG | GET STATIC INFO')
-		var m = `{"jsonrpc":"2.0", "method":"get.computer.static.info", "id": ${201}}`
-		this.instance.sdConnection.sendJsonMessage(m)
-	}
-
-	async getDynamicInfo() {
-		//this.instance.log('info', 'SPYDOG | GET DYNAMIC INFO')
-		var m = `{"jsonrpc":"2.0", "method":"get.computer.dynamic.info", "id": ${200}}`
-		this.instance.sdConnection.sendJsonMessage(m)
-	}
-
 	async setStaticInfo(objs: any) {
 		this.instance.staticInfo = objs[0]
 		for (var key in objs[0]) {
@@ -75,5 +63,44 @@ export class SpyDog {
 			this.instance.setVariableValues(objTemp)
 			this.instance.checkFeedbacks(`${key}`)
 		}
+	}
+
+	// SEND INFOS
+	async sendStaticInfo() {
+		//this.instance.log('info', 'SPYDOG | GET STATIC INFO')
+		var m = `{"jsonrpc":"2.0", "method":"get.computer.static.info", "id": ${201}}`
+		this.instance.sdConnection.sendJsonMessage(m)
+	}
+
+	async sendDynamicInfo() {
+		//this.instance.log('info', 'SPYDOG | GET DYNAMIC INFO')
+		var m = `{"jsonrpc":"2.0", "method":"get.computer.dynamic.info", "id": ${200}}`
+		this.instance.sdConnection.sendJsonMessage(m)
+	}
+
+	//SEND DOACTIONS
+
+	async sendStartModuloPlayer() {
+		//this.instance.log('info', 'SPYDOG | START MODULO PLAYER')
+		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "startModuloPlayer"}, "id": 0}`
+		this.instance.sdConnection.sendJsonMessage(m)
+	}
+
+	async sendStopModuloPlayer() {
+		//this.instance.log('info', 'SPYDOG | STOP MODULO PLAYER')
+		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "stopModuloPlayer"}, "id": 0}`
+		this.instance.sdConnection.sendJsonMessage(m)
+	}
+
+	async sendRebootComputer() {
+		//this.instance.log('info', 'SPYDOG | REBOOT COMPUTER')
+		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "rebootComputer"}, "id": 0}`
+		this.instance.sdConnection.sendJsonMessage(m)
+	}
+
+	async sendPowerOffComputer() {
+		//this.instance.log('info', 'SPYDOG | POWER OFF COMPUTER')
+		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "powerOffComputer"}, "id": 0}`
+		this.instance.sdConnection.sendJsonMessage(m)
 	}
 }

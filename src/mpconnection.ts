@@ -5,7 +5,7 @@ import WebSocket from 'ws'
 
 export class MPconnection {
 	instance: MPinstance
-	private websocket: WebSocket | undefined | null
+	public websocket: WebSocket | undefined | null
 	private wsTimeout: NodeJS.Timeout | undefined
 	private mpAddr: string | undefined
 	private mpPort: any | undefined | null
@@ -38,12 +38,14 @@ export class MPconnection {
 				this.websocket.on('open', async () => {
 					this.reconnectinterval = this.reconnectmin
 					this.instance!.log('info', 'WEBSOCKET MP OPENED ' + this.websocket?.readyState)
-					this.instance.mpConnected = true
+					this.instance.mpConnected = this.websocket?.readyState === 1
 					this.instance.isConnected()
 					this.instance.initPolling()
 				})
 
 				this.websocket.on('close', (ev: { toString: () => any }) => {
+					this.instance.mpConnected = this.websocket?.readyState === 1
+					this.instance.isConnected()
 					console.log(
 						'ws closed',
 						ev.toString(),
@@ -64,7 +66,8 @@ export class MPconnection {
 				this.websocket.on('error', (error: string) => {
 					this.instance.log('error', 'Socket ' + error)
 					this.instance.log('warn', 'Check if Modulo Player is started ?')
-					//this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+					this.instance.mpConnected = this.websocket?.readyState === 1
+					this.instance.isConnected()
 				})
 
 				this.websocket.on('message', (data: { toString: () => string }) => {
@@ -85,40 +88,10 @@ export class MPconnection {
 		}
 	}
 
-	sendMessage(method: string, id: any): void {
-		if (this.websocket?.readyState === 1) {
-			var m = `{"jsonrpc":"2.0","method":"${method}","id": ${id}}`
-			this.websocket?.send(m)
-			//this.instance.log('debug', 'SENDING WS MESSAGE ' + this.websocket.url + ' ' + m)
-		}
-	}
-
-	sendMessageLunchTask(uuid: any, id: any): void {
-		if (this.websocket?.readyState === 1) {
-			var m = `{"jsonrpc":"2.0","method":"doaction.task", "params": {
-            "uuid": "${uuid}",
-            "action": "launch"
-            },"id": ${id}}`
-			this.websocket?.send(m)
-			//this.instance.log('debug', 'SENDING WS MESSAGE LAUNCH TASK ' + this.websocket.url + ' ' + m)
-		}
-	}
-
 	sendJsonMessage(message: String) {
 		if (this.websocket?.readyState === 1 && message !== '') {
 			this.websocket?.send(message)
-			this.instance.log('debug', 'SENDING WS MESSAGE LAUNCH TASK ' + this.websocket.url + ' ' + message)
-		}
-	}
-
-	sendMessagePlaylistsCues(): void {
-		if (this.websocket?.readyState === 1) {
-			var m = `{"jsonrpc":"2.0","method":"get.list.playlists",
-            "params": {
-            "level": "cue"},
-            "id": 3}`
-			this.websocket?.send(m)
-			//this.instance.log('debug', 'SENDING WS MESSAGE GET PLAYLISTS CUES ' + this.websocket.url + ' ' + m)
+			//this.instance.log('debug', 'SENDING WS MESSAGE LAUNCH ' + this.websocket.url + ' ' + message)
 		}
 	}
 

@@ -15,7 +15,7 @@ export function UpdateActions(instance: MPinstance): void {
 			],
 			callback: async (event) => {
 				//console.log('Launch Task ID: ' + event.options.task)
-				instance.mpConnection.sendMessageLunchTask(event.options.task, 2)
+				instance.moduloplayer?.sendLaunchTask(event.options.task)
 			},
 		},
 
@@ -59,9 +59,7 @@ export function UpdateActions(instance: MPinstance): void {
 					id = parseInt(event.options.pl, 10)
 				}
 				const pl = instance.dropdownPlayList[id]
-				// console.log('warn', `MODULO PLAYER | GET DROPDOWN ACTION >>> ${typeof event.options.pl} >>>  ${JSON.stringify(pl)}`)
-				// console.log(`Launch Cue ID: ${event.options.pl} from Playlist UUID: ${pl["uuid"]}`)
-				instance.moduloplayer?.setGotoCue(pl['uuid'], event.options.index)
+				instance.moduloplayer?.sendGotoCue(pl['uuid'], event.options.index)
 			},
 		},
 
@@ -107,7 +105,7 @@ export function UpdateActions(instance: MPinstance): void {
 				const pl = instance.dropdownPlayList[id]
 				// console.log('warn', `MODULO PLAYER | GET DROPDOWN ACTION >>> ${typeof event.options.pl} >>>  ${JSON.stringify(pl)}`)
 				// console.log(`Launch Cue ID: ${event.options.pl} from Playlist UUID: ${pl["uuid"]}`)
-				instance.moduloplayer?.setPreloadCue(pl['uuid'], event.options.index)
+				instance.moduloplayer?.sendPreloadCue(pl['uuid'], event.options.index)
 			},
 		},
 
@@ -136,7 +134,7 @@ export function UpdateActions(instance: MPinstance): void {
 					id = parseInt(event.options.pl, 10)
 				}
 				const pl = instance.dropdownPlayList[id]
-				instance.moduloplayer?.setPlay(pl['uuid'])
+				instance.moduloplayer?.sendPlay(pl['uuid'])
 			},
 		},
 
@@ -165,7 +163,7 @@ export function UpdateActions(instance: MPinstance): void {
 					id = parseInt(event.options.pl, 10)
 				}
 				const pl = instance.dropdownPlayList[id]
-				instance.moduloplayer?.setPause(pl['uuid'])
+				instance.moduloplayer?.sendPause(pl['uuid'])
 			},
 		},
 
@@ -194,7 +192,7 @@ export function UpdateActions(instance: MPinstance): void {
 					id = parseInt(event.options.pl, 10)
 				}
 				const pl = instance.dropdownPlayList[id]
-				instance.moduloplayer?.setNextCue(pl['uuid'])
+				instance.moduloplayer?.sendNextCue(pl['uuid'])
 			},
 		},
 
@@ -223,13 +221,13 @@ export function UpdateActions(instance: MPinstance): void {
 					id = parseInt(event.options.pl, 10)
 				}
 				const pl = instance.dropdownPlayList[id]
-				instance.moduloplayer?.setPrevCue(pl['uuid'])
+				instance.moduloplayer?.sendPrevCue(pl['uuid'])
 			},
 		},
 
 		// GRAND MASTER FADER
 		pl_grand_master_fader: {
-			name: 'GrandMaster Fader on Playlist (ID)',
+			name: 'Grand Master Fader on Playlist',
 			options: [
 				{
 					id: 'pl',
@@ -268,11 +266,103 @@ export function UpdateActions(instance: MPinstance): void {
 					id = parseInt(event.options.pl, 10)
 				}
 				const pl = instance.dropdownPlayList[id]
-				instance.moduloplayer?.setGrandMasterFader(pl['uuid'], event.options.value, event.options.duration)
+				instance.moduloplayer?.sendGrandMasterFader(pl['uuid'], event.options.value, event.options.duration)
 			},
 		},
 
-		// GRAND MASTER FADER
+		grand_master_fader_add: {
+			name: 'Add Grand Master Fader Rotate on Playlist',
+			options: [
+				{
+					id: 'pl',
+					type: 'dropdown',
+					label: 'Select Playlist',
+					choices: instance.dropdownPlayList,
+					default: `0`,
+				},
+				{
+					id: 'plUUID',
+					type: 'textinput',
+					label: 'Playlist ID',
+					default: '',
+					isVisible: () => false,
+				},
+				{
+					id: 'value',
+					type: 'number',
+					label: 'Value in % (0 to 100)',
+					default: 1,
+					min: 0,
+					max: 100,
+				},
+			],
+			callback: async (event) => {
+				let id = 0
+				if (typeof event.options.pl === 'string') {
+					id = parseInt(event.options.pl, 10)
+				}
+				const pl = instance.dropdownPlayList[id]
+				const plName = `pl_${instance.cleanUUID(pl['uuid'])}_grandMasterFader`
+				const value = parseInt(instance.states[plName])
+				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
+				let newValue = value + addValue
+				if (newValue > 100) newValue = 100
+				// console.log(
+				// 	`Add GrandMaster Fader on Playlist ID: ${variableValue} with value: ${newValue}` +
+				// 		`pl_${pl['uuid']}_grandMasterFader`,
+				// )
+				instance.moduloplayer?.sendGrandMasterFader(pl['uuid'], newValue, 0)
+				instance.states[plName] = newValue
+			},
+		},
+
+		grand_master_fader_remove: {
+			name: 'Remove Grand Master Fader Rotate on Playlist',
+			options: [
+				{
+					id: 'pl',
+					type: 'dropdown',
+					label: 'Select Playlist',
+					choices: instance.dropdownPlayList,
+					default: `0`,
+				},
+				{
+					id: 'plUUID',
+					type: 'textinput',
+					label: 'Playlist ID',
+					default: '',
+					isVisible: () => false,
+				},
+				{
+					id: 'value',
+					type: 'number',
+					label: 'Value in % (0 to 100)',
+					default: 1,
+					min: 0,
+					max: 100,
+				},
+			],
+			callback: async (event) => {
+				let id = 0
+				if (typeof event.options.pl === 'string') {
+					id = parseInt(event.options.pl, 10)
+				}
+				const pl = instance.dropdownPlayList[id]
+				const plName = `pl_${instance.cleanUUID(pl['uuid'])}_grandMasterFader`
+				const value = parseInt(instance.states[plName])
+				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
+				let newValue = value - addValue
+				if (newValue < 0) newValue = 0
+				// console.log(
+				// 	`Remove GrandMaster Fader on Playlist ID: ${variableValue} with value: ${newValue}` +
+				// 		`pl_${pl['uuid']}_grandMasterFader`,
+				// )
+				instance.moduloplayer?.sendGrandMasterFader(pl['uuid'], newValue, 0)
+				instance.states[plName] = newValue
+			},
+		},
+
+		// AUDIO MASTER
 		audio_master: {
 			name: 'Audio Master on Playlist',
 			options: [
@@ -313,7 +403,91 @@ export function UpdateActions(instance: MPinstance): void {
 					id = parseInt(event.options.pl, 10)
 				}
 				const pl = instance.dropdownPlayList[id]
-				instance.moduloplayer?.setAudioMaster(pl['uuid'], event.options.value, event.options.duration)
+				instance.moduloplayer?.sendAudioMaster(pl['uuid'], event.options.value, event.options.duration)
+			},
+		},
+
+		audio_master_add: {
+			name: 'Add Audio Master Rotate on Playlist',
+			options: [
+				{
+					id: 'pl',
+					type: 'dropdown',
+					label: 'Select Playlist',
+					choices: instance.dropdownPlayList,
+					default: `0`,
+				},
+				{
+					id: 'plUUID',
+					type: 'textinput',
+					label: 'Playlist ID',
+					default: '',
+					isVisible: () => false,
+				},
+				{
+					id: 'value',
+					type: 'number',
+					label: 'Value in % (0 to 100)',
+					default: 1,
+					min: 0,
+					max: 100,
+				},
+			],
+			callback: async (event) => {
+				let id = 0
+				if (typeof event.options.pl === 'string') {
+					id = parseInt(event.options.pl, 10)
+				}
+				const pl = instance.dropdownPlayList[id]
+				const plName = `pl_${instance.cleanUUID(pl['uuid'])}_audioMaster`
+				const value = parseInt(instance.states[plName])
+				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
+				let newValue = value + addValue
+				if (newValue > 100) newValue = 100
+				instance.moduloplayer?.sendAudioMaster(pl['uuid'], newValue, 0)
+				instance.states[plName] = newValue
+			},
+		},
+
+		audio_master_remove: {
+			name: 'Remove Audio Master Rotate on Playlist',
+			options: [
+				{
+					id: 'pl',
+					type: 'dropdown',
+					label: 'Select Playlist',
+					choices: instance.dropdownPlayList,
+					default: `0`,
+				},
+				{
+					id: 'plUUID',
+					type: 'textinput',
+					label: 'Playlist ID',
+					default: '',
+					isVisible: () => false,
+				},
+				{
+					id: 'value',
+					type: 'number',
+					label: 'Value in % (0 to 100)',
+					default: 100,
+					min: 0,
+					max: 100,
+				},
+			],
+			callback: async (event) => {
+				let id = 0
+				if (typeof event.options.pl === 'string') {
+					id = parseInt(event.options.pl, 10)
+				}
+				const pl = instance.dropdownPlayList[id]
+				const plName = `pl_${instance.cleanUUID(pl['uuid'])}_audioMaster`
+				const value = parseInt(instance.states[plName])
+				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
+				let newValue = value - addValue
+				if (newValue < 0) newValue = 0
+				instance.moduloplayer?.sendAudioMaster(pl['uuid'], newValue, 0)
+				instance.states[plName] = newValue
 			},
 		},
 
@@ -323,7 +497,7 @@ export function UpdateActions(instance: MPinstance): void {
 			name: 'Save Show',
 			options: [],
 			callback: async () => {
-				instance.moduloplayer?.setShowSave()
+				instance.moduloplayer?.sendShowSave()
 			},
 		},
 
@@ -332,7 +506,7 @@ export function UpdateActions(instance: MPinstance): void {
 			name: 'Backup Show',
 			options: [],
 			callback: async () => {
-				instance.moduloplayer?.setShowbackup()
+				instance.moduloplayer?.sendShowbackup()
 			},
 		},
 
@@ -341,7 +515,7 @@ export function UpdateActions(instance: MPinstance): void {
 			name: 'Rescan Medias',
 			options: [],
 			callback: async () => {
-				instance.moduloplayer?.setShowRescanMedia()
+				instance.moduloplayer?.sendShowRescanMedia()
 			},
 		},
 
@@ -350,7 +524,7 @@ export function UpdateActions(instance: MPinstance): void {
 			name: 'Remove Missing Medias',
 			options: [],
 			callback: async () => {
-				instance.moduloplayer?.setShowRemoveMissingMedia()
+				instance.moduloplayer?.sendShowRemoveMissingMedia()
 			},
 		},
 
@@ -359,7 +533,7 @@ export function UpdateActions(instance: MPinstance): void {
 			name: 'Rescan Medias Force',
 			options: [],
 			callback: async () => {
-				instance.moduloplayer?.setShowRescanMediaForce()
+				instance.moduloplayer?.sendShowRescanMediaForce()
 			},
 		},
 
@@ -368,7 +542,40 @@ export function UpdateActions(instance: MPinstance): void {
 			name: 'Send show to all remotes',
 			options: [],
 			callback: async () => {
-				instance.moduloplayer?.setShowSendShowToRemote()
+				instance.moduloplayer?.sendShowSendShowToRemote()
+			},
+		},
+
+		// ----- SPYDOG -----
+		spydog_start_mp: {
+			name: 'Start Modulo Player',
+			options: [],
+			callback: async () => {
+				instance.spydog?.sendStartModuloPlayer()
+			},
+		},
+
+		spydog_stop_mp: {
+			name: 'Stop Modulo Player',
+			options: [],
+			callback: async () => {
+				instance.spydog?.sendStopModuloPlayer()
+			},
+		},
+
+		spydog_reboot_mp: {
+			name: 'Reboot Modulo Player',
+			options: [],
+			callback: async () => {
+				instance.spydog?.sendRebootComputer()
+			},
+		},
+
+		spydog_power_off_mp: {
+			name: 'Power Off Modulo Player',
+			options: [],
+			callback: async () => {
+				instance.spydog?.sendPowerOffComputer()
 			},
 		},
 	})

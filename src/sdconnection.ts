@@ -1,11 +1,11 @@
 import { MPinstance } from './main.js'
-import { InstanceStatus } from '@companion-module/base'
+//import { InstanceStatus } from '@companion-module/base'
 
 import WebSocket from 'ws'
 
 export class SDconnection {
 	instance: MPinstance
-	private websocket: WebSocket | undefined | null
+	public websocket: WebSocket | undefined | null
 	private wsTimeout: NodeJS.Timeout | undefined
 	private mpAddr: string | undefined
 	private sdPort: any | null
@@ -31,7 +31,7 @@ export class SDconnection {
 		const urlObj = `ws://${this.mpAddr}:${this.sdPort}`
 		if (urlObj === null) return
 
-		this.instance.updateStatus(InstanceStatus.Connecting, `Init Connection`)
+		//this.instance.updateStatus(InstanceStatus.Connecting, `Init Connection`)
 
 		try {
 			const setupMP = async () => {
@@ -40,19 +40,21 @@ export class SDconnection {
 				this.websocket.on('open', async () => {
 					this.reconnectinterval = this.reconnectmin
 					this.instance!.log('info', 'WEBSOCKET SPYDOG OPENED ' + this.websocket?.readyState)
-					this.instance.sdConnected = true
+					this.instance.sdConnected = this.websocket?.readyState === 1
 					this.instance.isConnected()
 					this.instance.initPolling()
 				})
 
 				this.websocket.on('close', (ev: { toString: () => any }) => {
+					this.instance.sdConnected = this.websocket?.readyState === 1
+					this.instance.isConnected()
 					console.log(
 						'ws closed',
 						ev.toString(),
 						this.shouldBeConnected ? 'should be connected' : 'should not be connected',
 					)
 					if (this.shouldBeConnected) {
-						this.instance.updateStatus(InstanceStatus.Disconnected)
+						//this.instance.updateStatus(InstanceStatus.Disconnected)
 						if (this.wsTimeout) clearTimeout(this.wsTimeout)
 						this.wsTimeout = setTimeout(() => {
 							this.connect(this.mpAddr, this.sdPort)
@@ -64,8 +66,9 @@ export class SDconnection {
 
 				this.websocket.on('error', (error: string) => {
 					this.instance.log('error', 'Socket ' + error)
-					this.instance.log('error', 'Check if Modulo Player is started ?')
-					this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+					this.instance.log('error', 'Check if Modulo Spydog is started ?')
+					this.instance.sdConnected = this.websocket?.readyState === 1
+					this.instance.isConnected()
 				})
 
 				this.websocket.on('message', (data: { toString: () => string }) => {

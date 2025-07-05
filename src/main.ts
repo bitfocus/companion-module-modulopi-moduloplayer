@@ -78,7 +78,7 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 		this.config = config
 		this.mpConnection.disconnect()
 		this.sdConnection.disconnect()
-		this.updateStatus(InstanceStatus.Connecting, `Init Connection`)
+		this.updateStatus(InstanceStatus.Connecting, `Init Connection, Start Modulo Player`)
 		await this.mpConnection.connect(this.config.host, this.config.mpPort)
 		if (this.config.sdEnable) {
 			await this.sdConnection.connect(this.config.host, this.config.sdPort)
@@ -86,22 +86,33 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	}
 
 	async isConnected() {
-		if (this.mpConnected && this.sdConnected) {
-			this.updateStatus(InstanceStatus.Ok, `Connected`)
-			if (this.mpConnected) this.moduloplayer?.getTaskListModuloPlayer()
-			if (this.mpConnected) this.moduloplayer?.getPlaylistModuloPlayer()
-			if (this.sdConnected) this.spydog?.getStaticInfo()
-			if (this.sdConnected) this.spydog?.getDynamicInfo()
-		} else if (!this.mpConnected && this.sdConnected) {
-			this.updateStatus(InstanceStatus.Ok, `Spydog Online | Modulo Player Offline`)
-			if (this.sdConnected) this.spydog?.getStaticInfo()
-			if (this.sdConnected) this.spydog?.getDynamicInfo()
-		} else if (this.mpConnected && !this.sdConnected) {
-			this.updateStatus(InstanceStatus.Ok, `Modulo Player Online | Spydog Offline`)
-			if (this.mpConnected) this.moduloplayer?.getTaskListModuloPlayer()
-			if (this.mpConnected) this.moduloplayer?.getPlaylistModuloPlayer()
+		this.log('warn', `IS CONNECTED ? >>> ${this.mpConnected} ${this.sdConnected}`)
+		if (this.config.sdEnable) {
+			if (this.mpConnected && this.sdConnected) {
+				this.updateStatus(InstanceStatus.Ok, `Connected`)
+				if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
+				if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
+				if (this.sdConnected) this.spydog?.sendStaticInfo()
+				if (this.sdConnected) this.spydog?.sendDynamicInfo()
+			} else if (!this.mpConnected && this.sdConnected) {
+				this.updateStatus(InstanceStatus.Connecting, `Modulo Player Offline | Spydog Online `)
+				if (this.sdConnected) this.spydog?.sendStaticInfo()
+				if (this.sdConnected) this.spydog?.sendDynamicInfo()
+			} else if (this.mpConnected && !this.sdConnected) {
+				this.updateStatus(InstanceStatus.Connecting, `Modulo Player Online | Spydog Offline`)
+				if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
+				if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
+			} else {
+				this.updateStatus(InstanceStatus.ConnectionFailure, `Start Modulo Player or Check IP Address`)
+			}
 		} else {
-			this.updateStatus(InstanceStatus.Connecting, `Init Connection`)
+			if (this.mpConnected) {
+				this.updateStatus(InstanceStatus.Ok, `Connected`)
+				if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
+				if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
+			} else {
+				this.updateStatus(InstanceStatus.ConnectionFailure, `Start Modulo Player or Check IP Address`)
+			}
 		}
 	}
 
@@ -113,10 +124,10 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	}
 
 	updatPolling() {
-		if (this.mpConnected) this.moduloplayer?.getPlaylistsCurrentCues()
-		if (this.mpConnected) this.moduloplayer?.getTaskListModuloPlayer()
-		if (this.mpConnected) this.moduloplayer?.getPlaylistModuloPlayer()
-		if (this.sdConnected) this.spydog?.getDynamicInfo()
+		if (this.mpConnected) this.moduloplayer?.sendCurrentCues()
+		if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
+		if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
+		if (this.sdConnected) this.spydog?.sendDynamicInfo()
 	}
 
 	// Return config fields for web config

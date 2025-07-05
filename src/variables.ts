@@ -10,8 +10,9 @@ export function UpdateVariableDefinitions(instance: MPinstance): void {
 		// CURRENT PL
 		const cpl = pls[pl]
 		const uuidPL: String = instance.cleanUUID(cpl['uuid'])
-		variables.push({ variableId: `pl_${uuidPL}_currentIndex`, name: `${cpl['name']} Current Cue ` })
-		variables.push({ variableId: `pl_${uuidPL}_grandMasterFader`, name: `${cpl['name']} Grand Master Fader ` })
+		variables.push({ variableId: `pl_${uuidPL}_currentIndex`, name: `${cpl['name']} Current Cue` })
+		variables.push({ variableId: `pl_${uuidPL}_grandMasterFader`, name: `${cpl['name']} Grand Master Fader` })
+		variables.push({ variableId: `pl_${uuidPL}_audioMaster`, name: `${cpl['name']} Audio Master` })
 
 		// CUES LIST
 		const cueslist: any = cpl['cues']
