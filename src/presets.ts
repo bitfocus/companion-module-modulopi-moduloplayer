@@ -20,6 +20,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 		const tls: any[] = instance.tasksList
 		for (let task = 0; task < tls.length; task++) {
 			let color = instance.getColorFromHex(tls[task]['uiColor']) // [0, 0, 0]
+			
 			//	if (tls[task]['uiColor'] !== '') { color = hexToRgb(`${tls[task]['uiColor']}`) }
 			let uuid: String = instance.cleanUUID(tls[task]['uuid']) //.replaceAll("{", "").replaceAll("}", "")
 			tasksPresets.push({
@@ -415,10 +416,12 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 				const cuuid = instance.cleanUUID(cl[cue]['uuid'])
 				// COLOR
 				let color = [0, 0, 0]
-				if (cl[cue]['uiColor'] !== '') {
-					color = instance.getColorFromHex(cl[cue]['uiColor'])
+				if (cl[cue]['uiColor'] !== '' && cl[cue]['uiColor'] !== 'transparent') {
+					const parsedColor = instance.getColorFromHex(cl[cue]['uiColor'])
+					if (parsedColor !== null) {
+						color = parsedColor
+					}
 				}
-
 				playlistsPresets.push({
 					category: `${playlist + 1} - ${plName}`,
 					name: `$(Modulo_Player:cue_${cuuid}_name)`,

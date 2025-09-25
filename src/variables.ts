@@ -92,7 +92,11 @@ export function InitVariableDefinitions(instance: MPinstance): void {
 			const idColor = `cue_${uuidCue}_color`
 			const couleurRgb = instance.getColorFromHex(`${c['uiColor']}`)
 			variables[id] = `${n}`
-			variables[idColor] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
+			if (couleurRgb !== null) {
+				variables[idColor] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
+			} else {
+				variables[idColor] = combineRgb(0, 0, 0).toString()
+			}
 		}
 	}
 
@@ -106,7 +110,11 @@ export function InitVariableDefinitions(instance: MPinstance): void {
 		const idColor = `tl_${tlUuid}_color`
 		const couleurRgb = instance.getColorFromHex(`${tls[tl]['uiColor']}`)
 		variables[id] = `${tlName}`
-		variables[idColor] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
+		if (couleurRgb !== null) {
+			variables[idColor] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
+		} else {
+			variables[idColor] = combineRgb(0, 0, 0).toString()
+		}
 	}
 
 	instance.setVariableValues(variables)

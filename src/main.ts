@@ -121,6 +121,7 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions()
+		this.checkFeedbacks(`color_cue`)
 	}
 
 	updatPolling() {
