@@ -86,7 +86,7 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	}
 
 	async isConnected() {
-		this.log('warn', `IS CONNECTED ? >>> ${this.mpConnected} ${this.sdConnected}`)
+		this.log('info', `IS CONNECTED ? >>> PLAYER: ${this.mpConnected} | SPYDOG: ${this.sdConnected}`)
 		if (this.config.sdEnable) {
 			if (this.mpConnected && this.sdConnected) {
 				this.updateStatus(InstanceStatus.Ok, `Connected`)

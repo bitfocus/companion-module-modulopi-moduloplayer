@@ -19,9 +19,15 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 		const tasksPresets: mpPresetArray = []
 		const tls: any[] = instance.tasksList
 		for (let task = 0; task < tls.length; task++) {
-			let color = instance.getColorFromHex(tls[task]['uiColor']) // [0, 0, 0]
-			
-			//	if (tls[task]['uiColor'] !== '') { color = hexToRgb(`${tls[task]['uiColor']}`) }
+			//let color = instance.getColorFromHex(tls[task]['uiColor']) // [0, 0, 0]
+			// COLOR
+				let color = [0, 0, 0]
+				if (tls[task]['uiColor'] !== '' && tls[task]['uiColor'] !== 'transparent') {
+					const parsedColor = instance.getColorFromHex(tls[task]['uiColor'])
+					if (parsedColor !== null) {
+						color = parsedColor
+					}
+				}
 			let uuid: String = instance.cleanUUID(tls[task]['uuid']) //.replaceAll("{", "").replaceAll("}", "")
 			tasksPresets.push({
 				category: `Tasks List` as PresetCategory,
