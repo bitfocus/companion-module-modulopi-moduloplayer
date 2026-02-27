@@ -9,20 +9,17 @@ export function UpdateFeedbacks(instance: MPinstance): void {
 			options: [
 				{
 					type: 'textinput',
-					label: 'UUID',
+					label: 'Task UUID',
 					id: 'uuid',
 					default: '',
 					isVisible: () => false,
 				},
 			],
 			callback: (feedback) => {
-				const uuid = feedback.options.uuid
-				const colorStr = instance.getVariableValue(`tl_${uuid}_color`) // string "16750848"
+				const uuid = feedback.options.uuid as string
+				const colorStr = instance.getVariableValue(`tl_${uuid}_color`)
 				if (typeof colorStr === 'string') {
-					const bgColor = parseInt(colorStr, 10)
-					return {
-						bgcolor: bgColor,
-					}
+					return { bgcolor: parseInt(colorStr, 10) }
 				}
 				return {}
 			},
@@ -33,20 +30,24 @@ export function UpdateFeedbacks(instance: MPinstance): void {
 			options: [
 				{
 					type: 'textinput',
-					label: 'UUID',
-					id: 'uuid',
+					label: 'Playlist UUID',
+					id: 'pl',
+					default: '',
+					isVisible: () => false,
+				},
+				{
+					type: 'textinput',
+					label: 'Cue UUID',
+					id: 'cue',
 					default: '',
 					isVisible: () => false,
 				},
 			],
 			callback: (feedback) => {
-				const uuid = feedback.options.uuid
-				const colorStr = instance.getVariableValue(`cue_${uuid}_color`) // string "16750848"
+				const cueUuid = feedback.options.cue as string
+				const colorStr = instance.getVariableValue(`cue_${cueUuid}_color`)
 				if (typeof colorStr === 'string') {
-					const bgColor = parseInt(colorStr, 10)
-					return {
-						bgcolor: bgColor,
-					}
+					return { bgcolor: parseInt(colorStr, 10) }
 				}
 				return {}
 			},
@@ -61,11 +62,10 @@ export function UpdateFeedbacks(instance: MPinstance): void {
 			options: [
 				{
 					id: 'current_Cue',
-					type: 'number',
-					label: 'ID',
-					default: 1,
-					min: 1,
-					max: 10000,
+					type: 'textinput',
+					label: 'Cue UUID',
+					default: '',
+					isVisible: () => false,
 				},
 				{
 					id: 'pl',
@@ -76,11 +76,13 @@ export function UpdateFeedbacks(instance: MPinstance): void {
 				},
 			],
 			callback: (feedback) => {
-				if (instance.states[`pl_${feedback.options.pl}_currentIndex`] === feedback.options.current_Cue) {
-					return true
-				} else {
-					return false
-				}
+				const plUuid = feedback.options.pl as string
+				const cueUUID = feedback.options.current_Cue as string
+				const playlist = instance.playLists.find((p) => instance.cleanUUID(p.uuid) === plUuid)
+				if (!playlist) return false
+				const cueIndex = playlist.cues.findIndex((c) => instance.cleanUUID(c.uuid) === cueUUID)
+				if (cueIndex === -1) return false
+				return instance.states[`pl_${plUuid}_currentIndex`] === cueIndex + 1
 			},
 		},
 		status: {

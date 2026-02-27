@@ -2,34 +2,27 @@ import { CompanionVariableValues, combineRgb } from '@companion-module/base/dist
 import type { MPinstance } from './main.js'
 
 export function UpdateVariableDefinitions(instance: MPinstance): void {
-	//instance.log('info', 'VARIABLES DEFINITIONS !')
-	// CUES
-	const pls: any[] = instance.playLists
 	const variables = []
-	for (let pl = 0; pl < pls.length; pl++) {
-		// CURRENT PL
-		const cpl = pls[pl]
-		const uuidPL: String = instance.cleanUUID(cpl['uuid'])
-		variables.push({ variableId: `pl_${uuidPL}_currentIndex`, name: `${cpl['name']} Current Cue` })
-		variables.push({ variableId: `pl_${uuidPL}_grandMasterFader`, name: `${cpl['name']} Grand Master Fader` })
-		variables.push({ variableId: `pl_${uuidPL}_audioMaster`, name: `${cpl['name']} Audio Master` })
 
-		// CUES LIST
-		const cueslist: any = cpl['cues']
-		//instance.log('warn', `VARIABLES DEFINITIONS | GET CUES LIST >>> ${instance.playLists}`)
-		for (let cue = 0; cue < cueslist.length; cue++) {
-			const c = cueslist[cue]
-			const uuidCue: String = instance.cleanUUID(c['uuid'])
+	// CUES
+	const pls = instance.playLists
+	for (const cpl of pls) {
+		const uuidPL = instance.cleanUUID(cpl.uuid)
+		variables.push({ variableId: `pl_${uuidPL}_currentIndex`, name: `${cpl.name} Current Cue` })
+		variables.push({ variableId: `pl_${uuidPL}_grandMasterFader`, name: `${cpl.name} Grand Master Fader` })
+		variables.push({ variableId: `pl_${uuidPL}_audioMaster`, name: `${cpl.name} Audio Master` })
+
+		for (const cue of cpl.cues) {
+			const uuidCue = instance.cleanUUID(cue.uuid)
 			variables.push({ variableId: `cue_${uuidCue}_name`, name: `Cue Name` })
 			variables.push({ variableId: `cue_${uuidCue}_color`, name: `Cue Color` })
 		}
 	}
 
 	// TASKS
-	const tls: any[] = instance.tasksList
-	for (let tl = 0; tl < tls.length; tl++) {
-		let tlUuid: String = instance.cleanUUID(tls[tl]['uuid'])
-		//instance.log('warn', `VARIABLES DEFINITIONS | GET TASK NAME >>> ${tlUuid} >>> ${tls[tl]['name']}`)
+	const tls = instance.tasksList
+	for (const tl of tls) {
+		const tlUuid = instance.cleanUUID(tl.uuid)
 		variables.push({ variableId: `tl_${tlUuid}_name`, name: `Task Name` })
 		variables.push({ variableId: `tl_${tlUuid}_color`, name: `Task Color` })
 	}
@@ -71,50 +64,43 @@ export function UpdateVariableDefinitions(instance: MPinstance): void {
 }
 
 export function InitVariableDefinitions(instance: MPinstance): void {
-	//instance.log('info', 'INIT VARIABLES DEFINITIONS !')
-	// CUES
-	const pls: any[] = instance.playLists
 	const variables: CompanionVariableValues = {}
-	for (let pl = 0; pl < pls.length; pl++) {
-		// CURRENT PL
-		const cpl = pls[pl]
-		// CUES LIST
-		const cueslist: any = cpl['cues']
-		//instance.log('warn', `VARIABLES DEFINITIONS | GET CUES LIST >>> ${instance.playLists}`)
-		for (let cue = 0; cue < cueslist.length; cue++) {
-			const c = cueslist[cue]
-			const uuidCue: String = instance.cleanUUID(c['uuid'])
-			let n = c['name']
-			if (n === '') {
-				n = `Cue ${cue + 1}`
-			}
-			const id = `cue_${uuidCue}_name`
-			const idColor = `cue_${uuidCue}_color`
-			const couleurRgb = instance.getColorFromHex(`${c['uiColor']}`)
-			variables[id] = `${n}`
+
+	// CUES
+	const pls = instance.playLists
+	for (const cpl of pls) {
+		for (const [cueIndex, cue] of cpl.cues.entries()) {
+			const uuidCue = instance.cleanUUID(cue.uuid)
+			const name = cue.name !== '' ? cue.name : `Cue ${cueIndex + 1}`
+			const couleurRgb = instance.getColorFromHex(cue.uiColor)
+			variables[`cue_${uuidCue}_name`] = name
 			if (couleurRgb !== null) {
-				variables[idColor] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
+				variables[`cue_${uuidCue}_color`] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
 			} else {
-				variables[idColor] = combineRgb(0, 0, 0).toString()
+				variables[`cue_${uuidCue}_color`] = combineRgb(0, 0, 0).toString()
 			}
 		}
 	}
 
 	// TASKS
-	const tls: any[] = instance.tasksList
-	for (let tl = 0; tl < tls.length; tl++) {
-		const tlUuid: String = instance.cleanUUID(tls[tl]['uuid'])
-		const tlName: String = tls[tl]['name']
-		//const tlColor: String = tls[tl]['uiColor']
-		const id = `tl_${tlUuid}_name`
-		const idColor = `tl_${tlUuid}_color`
-		const couleurRgb = instance.getColorFromHex(`${tls[tl]['uiColor']}`)
-		variables[id] = `${tlName}`
+	const tls = instance.tasksList
+	for (const tl of tls) {
+		const tlUuid = instance.cleanUUID(tl.uuid)
+		const couleurRgb = instance.getColorFromHex(tl.uiColor)
+		variables[`tl_${tlUuid}_name`] = tl.name
 		if (couleurRgb !== null) {
-			variables[idColor] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
+			variables[`tl_${tlUuid}_color`] = combineRgb(couleurRgb[0], couleurRgb[1], couleurRgb[2]).toString()
 		} else {
-			variables[idColor] = combineRgb(0, 0, 0).toString()
+			variables[`tl_${tlUuid}_color`] = combineRgb(0, 0, 0).toString()
 		}
+	}
+
+	// Restaure les valeurs Spydog du cache states (évite le $NA après chaque updateInstance)
+	for (const [key, value] of Object.entries(instance.states)) {
+		variables[key] = value
+	}
+	if (instance.sdConnected && !('detacastTemperature' in instance.states)) {
+		variables['detacastTemperature'] = 'No Deltacast'
 	}
 
 	instance.setVariableValues(variables)

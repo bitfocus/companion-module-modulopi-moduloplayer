@@ -1,15 +1,27 @@
 import { MPinstance } from './main.js'
-//import { getPresets } from './presets.js'
+import {
+	RPC_ID,
+	msgGetTasks,
+	msgGetPlaylistsCues,
+	msgGetPlaylistsPlaylist,
+	msgLaunchTask,
+	msgGotoCue,
+	msgPreloadCue,
+	msgPlay,
+	msgPause,
+	msgNextCue,
+	msgPrevCue,
+	msgGrandMasterFader,
+	msgAudioMaster,
+	msgShowAction,
+	type ShowAction,
+} from './messages.js'
+import type { RawPlaylist, RawTask } from './types.js'
 
-// JSON ID
-// 1 = list Tasks,
-// 2 = Launch Task,
-// 3 = list Playlist
-
-// 100 =
-// 110 = ACTION GOTO
-// 120 = GRAND MASTER FADER
-// 130 = AUDIO MASTER
+interface RpcResponse {
+	id: number
+	result: unknown
+}
 
 export class ModuloPlayer {
 	instance: MPinstance
@@ -18,282 +30,183 @@ export class ModuloPlayer {
 		this.instance = instance
 	}
 
-	public messageManager(data: String): void {
-		const datas = JSON.parse(data.toString())
-		//this.instance.log('warn', 'MODULO PLAYER | MESSAGE MANAGER | DATA ID >>> ' + datas['id'])
-		if (datas['id'] == 1) {
-			//console.log('debug', 'MODULO PLAYER | MESSAGE MANAGER | DATA >>> ' + data.toString())
-			this.tasksListManager(datas['result'])
-		} else if (datas['id'] == 2) {
-			//console.log('debug', 'MODULO PLAYER | MESSAGE MANAGER | LAUNCH TASK | DATA >>> ' + data.toString())
-			//this.playListCuesManager(datas['result'])
-		} else if (datas['id'] == 3) {
-			//console.log('debug', 'MODULO PLAYER | MESSAGE MANAGER | DATA >>> ' + data.toString())
-			this.playListCuesManager(datas['result'])
-		} else if (datas['id'] == 110) {
-			//console.log('debug', 'MODULO PLAYER | MESSAGE MANAGER | DATA >>> ' + data.toString())
-			this.setPlayListCurrentCueIndex(datas['result'])
-			this.setGrandMasterFaderVariable(datas['result'])
-			this.setAudioMasterVariable(datas['result'])
-		} else if (datas['id'] == 120) {
-			//this.instance.log('info', 'MODULO PLAYER | MESSAGE MANAGER| GRAND MASTER | DATA >>> ' + data.toString())
-			this.setGrandMasterFaderVariable(datas['result'])
-		} else if (datas['id'] == 130) {
-			//this.instance.log('info', 'MODULO PLAYER | MESSAGE MANAGER| GRAND MASTER | DATA >>> ' + data.toString())
-			this.setAudioMasterVariable(datas['result'])
+	public messageManager(data: string): void {
+		const datas = JSON.parse(data) as RpcResponse
+		if (datas.id === RPC_ID.GET_TASKS) {
+			this.tasksListManager(datas.result as RawTask[])
+		} else if (datas.id === RPC_ID.LAUNCH_TASK) {
+			// réponse ignorée
+		} else if (datas.id === RPC_ID.GET_PLAYLISTS_CUES) {
+			this.playListCuesManager(datas.result as RawPlaylist[])
+		} else if (datas.id === RPC_ID.GET_PLAYLISTS_PLAYLIST) {
+			this.setPlayListCurrentCueIndex(datas.result as RawPlaylist[])
+			this.setGrandMasterFaderVariable(datas.result as RawPlaylist[])
+			this.setAudioMasterVariable(datas.result as RawPlaylist[])
+		} else if (datas.id === RPC_ID.GRAND_MASTER_FADER) {
+			this.setGrandMasterFaderVariable(datas.result as RawPlaylist[])
+		} else if (datas.id === RPC_ID.AUDIO_MASTER) {
+			this.setAudioMasterVariable(datas.result as RawPlaylist[])
 		}
 	}
 
 	// TASK LIST
-	public tasksListManager(obj: any): void {
-		const tlInstance: any[] = this.instance.tasksList
-		const tlNew: any[] = obj
-		const checkTL = areJsonArraysEqual(tlInstance, tlNew)
-		if (!checkTL) {
-			this.instance.tasksList = obj
+	public tasksListManager(newList: RawTask[]): void {
+		if (!Array.isArray(newList)) return
+		if (!areJsonArraysEqual(this.instance.tasksList, newList)) {
+			this.instance.tasksList = newList
+			this.setDropDownTL(newList)
 			this.instance.updateInstance()
 		}
 	}
 
+	// ACTION DROPDOWN TASK ARRAY
+	public setDropDownTL(tasks: RawTask[]): void {
+		this.instance.dropdownTaskList = tasks.map((tl) => ({
+			id: this.instance.cleanUUID(tl.uuid),
+			label: tl.name,
+			uuid: tl.uuid,
+		}))
+	}
+
 	// PLAY LISTS CUES
-	public playListCuesManager(obj: any): void {
-		const plInstance: any[] = this.instance.playLists
-		const plNew: any[] = obj
-		const checkPL = areJsonArraysEqual(plInstance, plNew)
-		if (!checkPL) {
-			this.instance.playLists = obj
-			this.setDropDownPL(obj)
+	public playListCuesManager(newList: RawPlaylist[]): void {
+		if (!Array.isArray(newList)) return
+		if (!areJsonArraysEqual(this.instance.playLists, newList)) {
+			this.instance.playLists = newList
+			this.setDropDownPL(newList)
 			this.instance.updateInstance()
-			this.setGrandMasterFaderVariable(obj)
+			this.setGrandMasterFaderVariable(newList)
 		}
 	}
 
 	// ACTION DROPDOWN PLAY LIST ARRAY
-	public setDropDownPL(pls: any) {
-		let plsa: any = []
-		for (let pl = 0; pl < pls.length; pl++) {
-			const obj = { id: `${pl}`, label: `${pls[pl]['name']}`, uuid: `${pls[pl]['uuid']}` }
-			plsa.push(obj)
-		}
-		this.instance.dropdownPlayList = plsa
+	public setDropDownPL(pls: RawPlaylist[]): void {
+		this.instance.dropdownPlayList = pls.map((pl) => ({
+			id: this.instance.cleanUUID(pl.uuid),
+			label: pl.name,
+			uuid: pl.uuid,
+		}))
 	}
 
 	// SET PLAYLIST CURRENT CUE INDEX
-	async setPlayListCurrentCueIndex(obj: any) {
-		const pls: any[] = obj
-		for (let playlist = 0; playlist < pls.length; playlist++) {
-			let uuid: String = this.instance.cleanUUID(pls[playlist]['uuid'])
-			var obj: any = {
-				[`pl_${uuid}_currentIndex`]: parseInt(pls[playlist]['index']),
-			}
-			this.instance.states[`pl_${uuid}_currentIndex`] = parseInt(pls[playlist]['index'])
-			this.instance.setVariableValues(obj)
+	setPlayListCurrentCueIndex(pls: RawPlaylist[]): void {
+		if (!Array.isArray(pls)) return
+		for (const playlist of pls) {
+			const uuid = this.instance.cleanUUID(playlist.uuid)
+			const index = parseInt(String(playlist.index))
+			const key = `pl_${uuid}_currentIndex`
+			if (this.instance.states[key] === index) continue
+			this.instance.states[key] = index
+			this.instance.setVariableValues({ [key]: index })
 			this.instance.checkFeedbacks(`current_Cue`)
 		}
 	}
 
-	async setGrandMasterFaderVariable(obj: any) {
-		const pls: any[] = obj
-		for (let playlist = 0; playlist < pls.length; playlist++) {
-			let uuid: String = this.instance.cleanUUID(pls[playlist]['uuid'])
-			// this.instance.log('warn', `MODULO PLAYER | GET GRAND MASTER FADER >>> ${uuid} >>> ${pls[playlist]['grandMasterFader']}`)
-			let grandMasterFader = (pls[playlist]['grandMasterFader'] * 100).toFixed(0)
-			var obj: any = {
-				[`pl_${uuid}_grandMasterFader`]: grandMasterFader,
-			}
-			this.instance.states[`pl_${uuid}_grandMasterFader`] = grandMasterFader
-			this.instance.setVariableValues(obj)
-			// this.instance.checkFeedbacks()
+	setGrandMasterFaderVariable(pls: RawPlaylist[]): void {
+		if (!Array.isArray(pls)) return
+		for (const playlist of pls) {
+			const uuid = this.instance.cleanUUID(playlist.uuid)
+			const grandMasterFader = (playlist.grandMasterFader * 100).toFixed(0)
+			const key = `pl_${uuid}_grandMasterFader`
+			if (this.instance.states[key] === grandMasterFader) continue
+			this.instance.states[key] = grandMasterFader
+			this.instance.setVariableValues({ [key]: grandMasterFader })
 		}
 	}
 
-	async setAudioMasterVariable(obj: any) {
-		const pls: any[] = obj
-		for (let playlist = 0; playlist < pls.length; playlist++) {
-			let uuid: String = this.instance.cleanUUID(pls[playlist]['uuid'])
-			let audioMaster = (pls[playlist]['audioMaster'] * 100).toFixed(0)
-			var obj: any = {
-				[`pl_${uuid}_audioMaster`]: audioMaster,
-			}
-			this.instance.states[`pl_${uuid}_audioMaster`] = audioMaster
-			this.instance.setVariableValues(obj)
+	setAudioMasterVariable(pls: RawPlaylist[]): void {
+		if (!Array.isArray(pls)) return
+		for (const playlist of pls) {
+			const uuid = this.instance.cleanUUID(playlist.uuid)
+			const audioMaster = (playlist.audioMaster * 100).toFixed(0)
+			const key = `pl_${uuid}_audioMaster`
+			if (this.instance.states[key] === audioMaster) continue
+			this.instance.states[key] = audioMaster
+			this.instance.setVariableValues({ [key]: audioMaster })
 		}
 	}
 
 	// SEND ACTIONS
 
-	// GET CURRENT CUE INDEX
-	async sendCurrentCues() {
-		var m = `{"jsonrpc":"2.0","method":"get.list.playlists",
-            "params": {
-            "level": "playlist"},
-            "id": 110}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendCurrentCues(): void {
+		this.instance.mpConnection.sendJsonMessage(msgGetPlaylistsPlaylist())
 	}
 
-	async sendGotoCue(plUUID: any, cueID: any) {
-		var m = `{
-			"jsonrpc": "2.0",
-			"method": "doaction.playlist",
-			"params": {
-			"uuid": "${plUUID}",
-			"action": "goto",
-			"cue": ${cueID}
-			},
-			"id": 110
-		}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendGotoCue(plUUID: string, cueID: number): void {
+		this.instance.mpConnection.sendJsonMessage(msgGotoCue(plUUID, cueID))
 		this.instance.states[`pl_${this.instance.cleanUUID(plUUID)}_currentIndex`] = cueID
 		this.instance.checkFeedbacks(`current_Cue`)
 	}
 
-	async sendPreloadCue(plUUID: any, cueID: any) {
-		var m = `{
-			"jsonrpc": "2.0",
-			"method": "doaction.playlist",
-			"params": {
-			"uuid": "${plUUID}",
-			"action": "preload",
-			"cue": ${cueID}
-			},
-			"id": 0
-		}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendPreloadCue(plUUID: string, cueID: number): void {
+		this.instance.mpConnection.sendJsonMessage(msgPreloadCue(plUUID, cueID))
 	}
 
-	async sendPlay(plUUID: any) {
-		var m = `{
-			"jsonrpc": "2.0",
-			"method": "doaction.playlist",
-			"params": {
-			"uuid": "${plUUID}",
-			"action": "play"
-			},
-			"id": 0
-		}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendPlay(plUUID: string): void {
+		this.instance.mpConnection.sendJsonMessage(msgPlay(plUUID))
 	}
 
-	async sendPause(plUUID: any) {
-		var m = `{
-			"jsonrpc": "2.0",
-			"method": "doaction.playlist",
-			"params": {
-			"uuid": "${plUUID}",
-			"action": "pause"
-			},
-			"id": 0
-		}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendPause(plUUID: string): void {
+		this.instance.mpConnection.sendJsonMessage(msgPause(plUUID))
 	}
 
-	async sendGrandMasterFader(_pl: any, _value: any, _duration: any) {
-		var m = `{"jsonrpc":"2.0","method":"doaction.playlist",
-			"params": {
-            "uuid": "${_pl}",
-            "action": "grandMasterFader",
-			"value": ${_value},
-			"duration": ${_duration}
-            },"id": 120}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendGrandMasterFader(plUUID: string, value: number, duration: number): void {
+		this.instance.mpConnection.sendJsonMessage(msgGrandMasterFader(plUUID, value, duration))
 	}
 
-	async sendAudioMaster(_pl: any, _value: any, _duration: any) {
-		var m = `{"jsonrpc":"2.0","method":"doaction.playlist",
-			"params": {
-            "uuid": "${_pl}",
-            "action": "audioMaster",
-			"value": ${_value},
-			"duration": ${_duration}
-            },"id": 130}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendAudioMaster(plUUID: string, value: number, duration: number): void {
+		this.instance.mpConnection.sendJsonMessage(msgAudioMaster(plUUID, value, duration))
 	}
 
-	async sendTaskListModuloPlayer() {
-		var m = `{"jsonrpc":"2.0","method":"get.list.tasks","id": 1}`
-		//this.instance.log('info', 'GET TASKS LIST')
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendTaskListModuloPlayer(): void {
+		this.instance.mpConnection.sendJsonMessage(msgGetTasks())
 	}
 
-	async sendLaunchTask(uuid: any) {
-		var m = `{"jsonrpc":"2.0","method":"doaction.task", "params": {
-            "uuid": "${uuid}",
-            "action": "launch"
-            },"id": 2}`
-		//this.instance.log('debug', 'SENDING WS MESSAGE LAUNCH TASK ' + this.websocket.url + ' ' + m)
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendLaunchTask(uuid: string): void {
+		this.instance.mpConnection.sendJsonMessage(msgLaunchTask(uuid))
 	}
 
-	async sendPlaylistModuloPlayer() {
-		var m = `{"jsonrpc":"2.0","method":"get.list.playlists",
-            "params": {
-            "level": "cue"},
-            "id": 3}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendPlaylistModuloPlayer(): void {
+		this.instance.mpConnection.sendJsonMessage(msgGetPlaylistsCues())
 	}
 
-	async sendNextCue(plUUDI: any) {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.playlist",
-				"params": {
-				"uuid": "${plUUDI}",
-				"action": "next"
-			},"id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendNextCue(plUUID: string): void {
+		this.instance.mpConnection.sendJsonMessage(msgNextCue(plUUID))
 	}
 
-	async sendPrevCue(plUUDI: any) {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.playlist",
-				"params": {
-				"uuid": "${plUUDI}",
-				"action": "prev"
-			},"id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendPrevCue(plUUID: string): void {
+		this.instance.mpConnection.sendJsonMessage(msgPrevCue(plUUID))
 	}
 
-	// SHOW FONCTIONS
-	// SAVE
-	async sendShowSave() {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.show", "params": {"action": "save"}, "id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendShowSave(): void {
+		this.instance.mpConnection.sendJsonMessage(msgShowAction('save' satisfies ShowAction))
 	}
 
-	// BACKUP
-	async sendShowbackup() {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.show", "params": {"action": "backup"}, "id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendShowbackup(): void {
+		this.instance.mpConnection.sendJsonMessage(msgShowAction('backup' satisfies ShowAction))
 	}
 
-	// RESCAN MEDIAS
-	async sendShowRescanMedia() {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.show", "params": {"action": "rescanmedia"}, "id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendShowRescanMedia(): void {
+		this.instance.mpConnection.sendJsonMessage(msgShowAction('rescanmedia' satisfies ShowAction))
 	}
 
-	// REMOVE MISSING MEDIAS
-	async sendShowRemoveMissingMedia() {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.show", "params": {"action": "removemissingmedia"}, "id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendShowRemoveMissingMedia(): void {
+		this.instance.mpConnection.sendJsonMessage(msgShowAction('removemissingmedia' satisfies ShowAction))
 	}
 
-	// RESCAN MEDIAS FORCE
-	async sendShowRescanMediaForce() {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.show", "params": {"action": "rescanmediaforce"}, "id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendShowRescanMediaForce(): void {
+		this.instance.mpConnection.sendJsonMessage(msgShowAction('rescanmediaforce' satisfies ShowAction))
 	}
 
-	// SEND SHOW TO ALL REMOTES
-	async sendShowSendShowToRemote() {
-		var m = `{"jsonrpc": "2.0", "method": "doaction.show", "params": {"action": "sendshowtoremote"}, "id": 0}`
-		this.instance.mpConnection.sendJsonMessage(m)
+	sendShowSendShowToRemote(): void {
+		this.instance.mpConnection.sendJsonMessage(msgShowAction('sendshowtoremote' satisfies ShowAction))
 	}
 }
 
-function areJsonArraysEqual(a: any[], b: any[]): boolean {
+function areJsonArraysEqual(a: unknown[], b: unknown[]): boolean {
 	if (a.length !== b.length) return false
 	for (let i = 0; i < a.length; i++) {
-		if (JSON.stringify(a[i]) !== JSON.stringify(b[i])) {
-			return false
-		}
+		if (JSON.stringify(a[i]) !== JSON.stringify(b[i])) return false
 	}
 	return true
 }

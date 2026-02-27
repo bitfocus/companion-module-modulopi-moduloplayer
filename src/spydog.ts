@@ -1,8 +1,16 @@
 import { MPinstance } from './main.js'
+import {
+	RPC_ID,
+	msgSpydogStaticInfo,
+	msgSpydogDynamicInfo,
+	msgComputerAction,
+} from './messages.js'
+import type { SpydogStaticInfo, SpydogDynamicInfo } from './types.js'
 
-// JSON ID
-// 200 = SPYDOG DYNAMIC INFO
-// 201 = SPYDOG STATIC INFO
+interface RpcResponse {
+	id: number
+	result: unknown
+}
 
 export class SpyDog {
 	instance: MPinstance
@@ -11,96 +19,79 @@ export class SpyDog {
 		this.instance = instance
 	}
 
-	public messageManager(data: String): void {
-		const datas = JSON.parse(data.toString())
-		//this.instance.log('debug', 'MODULO SPYDOG  | MESSAGE MANAGER | DATA ID >>> ' + datas['id'])
-		if (datas['id'] == 200) {
-			this.setDynamicInfo(datas['result'])
-		} else if (datas['id'] == 201) {
-			this.setStaticInfo(datas['result'])
+	public messageManager(data: string): void {
+		const datas = JSON.parse(data) as RpcResponse
+		if (datas.id === RPC_ID.SPYDOG_DYNAMIC_INFO) {
+			this.setDynamicInfo(datas.result as [SpydogDynamicInfo])
+		} else if (datas.id === RPC_ID.SPYDOG_STATIC_INFO) {
+			this.setStaticInfo(datas.result as [SpydogStaticInfo])
 		}
 	}
 
-	async setStaticInfo(objs: any) {
-		this.instance.staticInfo = objs[0]
-		for (var key in objs[0]) {
-			// this.instance.log(
-			// 	'info',
-			// 	`MODULO SPYDOG | SET STATIC INFO | ELEMENTS >>> ${key}: ${objs[0][key]} ${typeof objs[0][key]}`,
-			// )
-			var objTemp: any = {}
-			if (typeof objs[0][key] === 'number') {
-				objTemp = { [`${key}`]: parseInt(objs[0][key]) }
-			} else {
-				objTemp = { [`${key}`]: objs[0][key] }
-			}
-			this.instance.states[`${key}`] = objs[0][key]
-			this.instance.setVariableValues(objTemp)
-			this.instance.checkFeedbacks(`${key}`)
+	async setStaticInfo(objs: [SpydogStaticInfo]): Promise<void> {
+		const info = objs[0]
+		if (!info) return
+		this.instance.staticInfo = info
+		for (const key of Object.keys(info) as (keyof SpydogStaticInfo)[]) {
+			const raw = info[key]
+			const value = typeof raw === 'number' ? raw : raw
+			this.instance.states[key] = value
+			this.instance.setVariableValues({ [key]: value })
+			this.instance.checkFeedbacks(key)
 		}
 		this.instance.updateInstance()
 	}
 
-	async setDynamicInfo(objs: any) {
-		this.instance.dynamicInfo = objs[0]
-		for (var key in objs[0]) {
-			// this.instance.log(
-			// 	'info',
-			// 	`MODULO SPYDOG | SET DYNAMIC INFO | ELEMENTS >>> ${key}: ${objs[0][key]} ${typeof objs[0][key]}`,
-			// )
-			var objTemp: any = {}
-			if (typeof objs[0][key] === 'number') {
-				objTemp = { [`${key}`]: parseInt(objs[0][key]) }
-			} else {
-				objTemp = { [`${key}`]: objs[0][key] }
+	async setDynamicInfo(objs: [SpydogDynamicInfo]): Promise<void> {
+		const info = objs[0]
+		if (!info) return
+		this.instance.dynamicInfo = info
+		for (const key of Object.keys(info) as (keyof SpydogDynamicInfo)[]) {
+			const raw = info[key]
+			const value =
+				key === 'detacastTemperature' && (raw === null || raw === undefined || (typeof raw === 'number' && raw < 0))
+					? 'No Deltacast'
+					: (raw as string | number | boolean)
+			if (this.instance.states[key] === value) continue
+			this.instance.states[key] = value
+			this.instance.setVariableValues({ [key]: value })
+			this.instance.checkFeedbacks(key)
+		}
+		// Si detacastTemperature est absent de la réponse (pas de matériel Deltacast)
+		if (!('detacastTemperature' in info)) {
+			const v = 'No Deltacast'
+			if (this.instance.states['detacastTemperature'] !== v) {
+				this.instance.states['detacastTemperature'] = v
+				this.instance.setVariableValues({ detacastTemperature: v })
 			}
-
-			if (`${key}` === 'color') {
-				this.instance.states[`${key}`] = objs[0][key]
-			} else {
-				this.instance.states[`${key}`] = objs[0][key]
-			}
-			this.instance.setVariableValues(objTemp)
-			this.instance.checkFeedbacks(`${key}`)
 		}
 	}
 
 	// SEND INFOS
-	async sendStaticInfo() {
-		//this.instance.log('info', 'SPYDOG | GET STATIC INFO')
-		var m = `{"jsonrpc":"2.0", "method":"get.computer.static.info", "id": ${201}}`
-		this.instance.sdConnection.sendJsonMessage(m)
+
+	sendStaticInfo(): void {
+		this.instance.sdConnection.sendJsonMessage(msgSpydogStaticInfo())
 	}
 
-	async sendDynamicInfo() {
-		//this.instance.log('info', 'SPYDOG | GET DYNAMIC INFO')
-		var m = `{"jsonrpc":"2.0", "method":"get.computer.dynamic.info", "id": ${200}}`
-		this.instance.sdConnection.sendJsonMessage(m)
+	sendDynamicInfo(): void {
+		this.instance.sdConnection.sendJsonMessage(msgSpydogDynamicInfo())
 	}
 
-	//SEND DOACTIONS
+	// SEND DOACTIONS
 
-	async sendStartModuloPlayer() {
-		//this.instance.log('info', 'SPYDOG | START MODULO PLAYER')
-		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "startModuloPlayer"}, "id": 0}`
-		this.instance.sdConnection.sendJsonMessage(m)
+	sendStartModuloPlayer(): void {
+		this.instance.sdConnection.sendJsonMessage(msgComputerAction('startModuloPlayer'))
 	}
 
-	async sendStopModuloPlayer() {
-		//this.instance.log('info', 'SPYDOG | STOP MODULO PLAYER')
-		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "stopModuloPlayer"}, "id": 0}`
-		this.instance.sdConnection.sendJsonMessage(m)
+	sendStopModuloPlayer(): void {
+		this.instance.sdConnection.sendJsonMessage(msgComputerAction('stopModuloPlayer'))
 	}
 
-	async sendRebootComputer() {
-		//this.instance.log('info', 'SPYDOG | REBOOT COMPUTER')
-		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "rebootComputer"}, "id": 0}`
-		this.instance.sdConnection.sendJsonMessage(m)
+	sendRebootComputer(): void {
+		this.instance.sdConnection.sendJsonMessage(msgComputerAction('rebootComputer'))
 	}
 
-	async sendPowerOffComputer() {
-		//this.instance.log('info', 'SPYDOG | POWER OFF COMPUTER')
-		var m = `{"jsonrpc":"2.0", "method":"doaction.computer", "params": {"action": "powerOffComputer"}, "id": 0}`
-		this.instance.sdConnection.sendJsonMessage(m)
+	sendPowerOffComputer(): void {
+		this.instance.sdConnection.sendJsonMessage(msgComputerAction('powerOffComputer'))
 	}
 }

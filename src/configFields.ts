@@ -73,7 +73,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'number',
 			id: 'pollInterval',
-			label: 'Polling interval (ms) (default: 250, min: 100, 0 for disabled)',
+			label: 'Polling interval (ms) (default: 1000, min: 100, 0 for disabled)',
 			width: 12,
 			default: 1000,
 			min: 0,

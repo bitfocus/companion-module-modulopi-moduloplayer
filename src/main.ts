@@ -13,22 +13,22 @@ import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
 import { getPresets } from './presets.js'
 
-//import { getPresets } from './presets.js'
-
-import { MPconnection } from './mpconnection.js'
-import { SDconnection } from './sdconnection.js'
+import { WSConnection } from './wsconnection.js'
 import { ModuloPlayer } from './moduloplayer.js'
 import { SpyDog } from './spydog.js'
-
-interface IStringIndex {
-	[key: string]: any
-}
+import type {
+	RawTask,
+	RawPlaylist,
+	DropdownPlaylistEntry,
+	StateMap,
+	SpydogStaticInfo,
+	SpydogDynamicInfo,
+} from './types.js'
 
 export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	config!: ModuloPlayConfig // Setup in init()
-	/** reference to the connection with the device */
-	public mpConnection!: MPconnection
-	public sdConnection!: SDconnection
+	public mpConnection!: WSConnection
+	public sdConnection!: WSConnection
 	public mpConnected = false
 	public sdConnected = false
 
@@ -38,12 +38,16 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	public pollAPI: NodeJS.Timeout | null = null
 
 	// MODULO PLAYER DATA
-	public tasksList = []
-	public playLists = []
-	public states: IStringIndex = {}
-	public dropdownPlayList = []
-	public dynamicInfo = {}
-	public staticInfo = {}
+	public tasksList: RawTask[] = []
+	public playLists: RawPlaylist[] = []
+	public states: StateMap = {}
+	public dropdownPlayList: DropdownPlaylistEntry[] = []
+	public dropdownTaskList: DropdownPlaylistEntry[] = []
+	public dynamicInfo: Partial<SpydogDynamicInfo> = {}
+	public staticInfo: Partial<SpydogStaticInfo> = {}
+
+	// Snapshot structurel pour éviter les updateInstance() inutiles
+	private _lastStructuralHash: string | null = null
 
 	// COLORS
 	public grayModuloPlayer: number = 2763306
@@ -51,22 +55,39 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	public greenModuloPlayer: number = 5818647
 	public redModuloPlayer: number = 16711680
 
-	// CONTRUCTOR
 	constructor(internal: unknown) {
 		super(internal)
 	}
 
 	async init(config: ModuloPlayConfig): Promise<void> {
-		this.mpConnection = new MPconnection(this)
-		this.sdConnection = new SDconnection(this)
 		this.moduloplayer = new ModuloPlayer(this)
 		this.spydog = new SpyDog(this)
-		await this.configUpdated(config)
 
+		this.mpConnection = new WSConnection(
+			this,
+			'ModuloPlayer',
+			(connected) => {
+				this.mpConnected = connected
+				void this.isConnected()
+				if (connected) this.initPolling()
+			},
+			(data) => this.moduloplayer?.messageManager(data),
+		)
+		this.sdConnection = new WSConnection(
+			this,
+			'Spydog',
+			(connected) => {
+				this.sdConnected = connected
+				void this.isConnected()
+				this.updateInstance()
+			},
+			(data) => this.spydog?.messageManager(data),
+		)
+
+		await this.configUpdated(config)
 		this.updateInstance()
 	}
 
-	// When module gets deleted
 	async destroy(): Promise<void> {
 		this.mpConnection.destroy()
 		this.sdConnection.destroy()
@@ -85,53 +106,69 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 		}
 	}
 
-	async isConnected() {
+	async isConnected(): Promise<void> {
 		this.log('info', `IS CONNECTED ? >>> PLAYER: ${this.mpConnected} | SPYDOG: ${this.sdConnected}`)
 		if (this.config.sdEnable) {
 			if (this.mpConnected && this.sdConnected) {
 				this.updateStatus(InstanceStatus.Ok, `Connected`)
-				if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
-				if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
-				if (this.sdConnected) this.spydog?.sendStaticInfo()
-				if (this.sdConnected) this.spydog?.sendDynamicInfo()
+				this.moduloplayer?.sendTaskListModuloPlayer()
+				this.moduloplayer?.sendPlaylistModuloPlayer()
+				this.spydog?.sendStaticInfo()
+				this.spydog?.sendDynamicInfo()
 			} else if (!this.mpConnected && this.sdConnected) {
 				this.updateStatus(InstanceStatus.Connecting, `Modulo Player Offline | Spydog Online `)
-				if (this.sdConnected) this.spydog?.sendStaticInfo()
-				if (this.sdConnected) this.spydog?.sendDynamicInfo()
+				this.spydog?.sendStaticInfo()
+				this.spydog?.sendDynamicInfo()
 			} else if (this.mpConnected && !this.sdConnected) {
 				this.updateStatus(InstanceStatus.Connecting, `Modulo Player Online | Spydog Offline`)
-				if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
-				if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
+				this.moduloplayer?.sendTaskListModuloPlayer()
+				this.moduloplayer?.sendPlaylistModuloPlayer()
 			} else {
 				this.updateStatus(InstanceStatus.ConnectionFailure, `Start Modulo Player or Check IP Address`)
 			}
 		} else {
 			if (this.mpConnected) {
 				this.updateStatus(InstanceStatus.Ok, `Connected`)
-				if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
-				if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
+				this.moduloplayer?.sendTaskListModuloPlayer()
+				this.moduloplayer?.sendPlaylistModuloPlayer()
 			} else {
 				this.updateStatus(InstanceStatus.ConnectionFailure, `Start Modulo Player or Check IP Address`)
 			}
 		}
 	}
 
-	async updateInstance() {
+	updateInstance(): void {
+		// Hash structurel uniquement : UUIDs, noms, couleurs, sdConnected
+		// Les champs dynamiques (currentIndex, grandMasterFader, audioMaster) sont exclus
+		// pour éviter un re-enregistrement à chaque poll
+		const structHash = JSON.stringify({
+			sdConnected: this.sdConnected,
+			tasks: this.tasksList.map((t) => ({ uuid: t.uuid, name: t.name, uiColor: t.uiColor })),
+			playlists: this.playLists.map((pl) => ({
+				uuid: pl.uuid,
+				name: pl.name,
+				cues: pl.cues.map((c) => ({ uuid: c.uuid, name: c.name, uiColor: c.uiColor })),
+			})),
+		})
+
+		if (structHash === this._lastStructuralHash) return
+		this._lastStructuralHash = structHash
+
 		this.setPresetDefinitions(getPresets(this))
-		this.updateActions() // export actions
-		this.updateFeedbacks() // export feedbacks
+		this.updateActions()
+		this.updateFeedbacks()
 		this.updateVariableDefinitions()
 		this.checkFeedbacks(`color_cue`)
+		this.checkFeedbacks(`color_task`)
 	}
 
-	updatPolling() {
+	updatePolling(): void {
 		if (this.mpConnected) this.moduloplayer?.sendCurrentCues()
 		if (this.mpConnected) this.moduloplayer?.sendTaskListModuloPlayer()
 		if (this.mpConnected) this.moduloplayer?.sendPlaylistModuloPlayer()
 		if (this.sdConnected) this.spydog?.sendDynamicInfo()
 	}
 
-	// Return config fields for web config
 	getConfigFields(): SomeCompanionConfigField[] {
 		return GetConfigFields()
 	}
@@ -149,57 +186,50 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 		InitVariableDefinitions(this)
 	}
 
-	cleanUUID(uuid: String) {
+	cleanUUID(uuid: string): string {
 		return uuid.replaceAll('{', '').replaceAll('}', '')
 	}
 
-	cleanName(name: String) {
+	cleanName(name: string): string {
 		return name.replaceAll(' ', '-')
 	}
 
-	getCombineRGBFromHex(colorHex: any) {
-		//this.log('debug', `MAIN | GET COMBINE RGB ${colorHex}`)
-		if (colorHex === undefined || colorHex === null) return
-		let rgb = this.getColorFromHex(colorHex)
+	getCombineRGBFromHex(colorHex: string | undefined | null): number | undefined {
+		if (colorHex === undefined || colorHex === null) return undefined
+		const rgb = this.getColorFromHex(colorHex)
+		if (rgb === null) return undefined
 		return combineRgb(rgb[0], rgb[1], rgb[2])
 	}
 
-	getColorFromHex(colorHex: any) {
-		let couleurRgb = [0, 0, 0]
-		if (colorHex !== '') {
-			couleurRgb = this.hexToRgb(`${colorHex}`)
-		}
-		return couleurRgb
+	getColorFromHex(colorHex: string): [number, number, number] | null {
+		if (colorHex === '') return [0, 0, 0]
+		return this.hexToRgb(colorHex)
 	}
 
-	hexToRgb(hex: any) {
+	hexToRgb(hex: string): [number, number, number] | null {
 		const normal = hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)
-		if (normal) return normal.slice(1).map((e: string) => parseInt(e, 16))
+		if (normal) return normal.slice(1).map((e) => parseInt(e, 16)) as [number, number, number]
 
 		const shorthand = hex.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i)
-		if (shorthand) return shorthand.slice(1).map((e: string) => 0x11 * parseInt(e, 16))
+		if (shorthand) return shorthand.slice(1).map((e) => 0x11 * parseInt(e, 16)) as [number, number, number]
 
 		return null
 	}
 
 	public readonly initPolling = (): void => {
-		//this.instance.log('warn', `CONNECTION| INIT POLLING >>> ${this.pollAPI}`)
 		if (this.pollAPI !== undefined && this.pollAPI !== null) {
 			clearInterval(this.pollAPI)
 		}
 
-		const pollAPI = () => {
-			//if (this.websocket?.readyState == 1) {
-			this.updatPolling()
-			//}
+		const tick = (): void => {
+			this.updatePolling()
 		}
 
-		pollAPI()
+		tick()
 
-		// Check if API Polling is disabled
-		if (this.config.pollInterval != 0) {
+		if (this.config.pollInterval !== 0) {
 			const pollInterval = this.config.pollInterval < 100 ? 100 : this.config.pollInterval
-			this.pollAPI = setInterval(pollAPI, pollInterval)
+			this.pollAPI = setInterval(tick, pollInterval)
 		}
 	}
 }

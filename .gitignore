@@ -9,3 +9,4 @@ DEBUG-*
 !/.yarn/install-state.gz
 version_javascript/
 .DS_Store
+.claude

@@ -11,24 +11,22 @@ export type PresetCategory = 'Tasks List' | 'PL'
 const textSize = 14
 
 export type mpPreset = CompanionButtonPresetDefinition | CompanionTextPresetDefinition
-type mpPresetArray = mpPreset[] | any
+type mpPresetArray = mpPreset[]
 
 export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 	// TASK
 	const getTasksPresets = (): mpPresetArray => {
 		const tasksPresets: mpPresetArray = []
-		const tls: any[] = instance.tasksList
-		for (let task = 0; task < tls.length; task++) {
-			//let color = instance.getColorFromHex(tls[task]['uiColor']) // [0, 0, 0]
-			// COLOR
-				let color = [0, 0, 0]
-				if (tls[task]['uiColor'] !== '' && tls[task]['uiColor'] !== 'transparent') {
-					const parsedColor = instance.getColorFromHex(tls[task]['uiColor'])
-					if (parsedColor !== null) {
-						color = parsedColor
-					}
+		const tls = instance.tasksList
+		for (const tl of tls) {
+			const uuid = instance.cleanUUID(tl.uuid)
+			let color: [number, number, number] = [0, 0, 0]
+			if (tl.uiColor !== '' && tl.uiColor !== 'transparent') {
+				const parsedColor = instance.getColorFromHex(tl.uiColor)
+				if (parsedColor !== null) {
+					color = parsedColor
 				}
-			let uuid: String = instance.cleanUUID(tls[task]['uuid']) //.replaceAll("{", "").replaceAll("}", "")
+			}
 			tasksPresets.push({
 				category: `Tasks List` as PresetCategory,
 				name: `$(Modulo_Player:tl_${uuid}_name)`,
@@ -44,7 +42,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 						down: [
 							{
 								actionId: 'launch_task',
-								options: { task: `${instance.tasksList[task]['uuid']}` },
+								options: { tl: uuid },
 							},
 						],
 						up: [],
@@ -53,9 +51,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 				feedbacks: [
 					{
 						feedbackId: 'color_task',
-						options: {
-							uuid: uuid,
-						},
+						options: { uuid: uuid },
 					},
 				],
 			})
@@ -66,20 +62,18 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 	// PLAYLISTS CUES
 	const getPlayListsCuesPresets = (): mpPresetArray => {
 		const playlistsPresets: mpPresetArray = []
-		const pls: any[] = instance.playLists
-		//instance.log('warn', 'GET PLAYLISTS PRESETS >>> ' + JSON.stringify(pls, null, 4))
+		const pls = instance.playLists
 		for (let playlist = 0; playlist < pls.length; playlist++) {
-			let cl: any[] = pls[playlist]['cues']
-			let plID = pls[playlist]['uuid']
-			let uuid: String = instance.cleanUUID(pls[playlist]['uuid'])
-			let plName = pls[playlist]['name']
-			//instance.log('warn', 'GET CUES PRESETS >>> ' + uuid)
+			const cl = pls[playlist].cues
+			const plID = pls[playlist].uuid
+			const uuid = instance.cleanUUID(pls[playlist].uuid)
+			const plName = pls[playlist].name
 
 			playlistsPresets.push({
 				category: `${playlist + 1} - ${plName}`,
 				name: 'Generals',
 				type: 'text',
-				//text: 'Generals',
+				text: 'Generals',
 			})
 
 			// PLAY
@@ -100,7 +94,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 								actionId: 'play_pl',
 								options: {
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -128,7 +122,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 								actionId: 'pause_pl',
 								options: {
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -159,7 +153,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 								actionId: 'next_cue',
 								options: {
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -190,7 +184,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 								actionId: 'prev_cue',
 								options: {
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -220,7 +214,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 0,
 									duration: 2000,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -250,7 +244,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 100,
 									duration: 2000,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -285,7 +279,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 1,
 									duration: 0,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -296,7 +290,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 1,
 									duration: 0,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -325,7 +319,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 0,
 									duration: 2000,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -355,7 +349,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 100,
 									duration: 2000,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -390,7 +384,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 1,
 									duration: 0,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -401,7 +395,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 									value: 1,
 									duration: 0,
 									plUUID: `${plID}`,
-									pl: playlist.toString(),
+									pl: uuid,
 								},
 							},
 						],
@@ -415,25 +409,24 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 				category: `${playlist + 1} - ${plName}`,
 				name: `Goto`,
 				type: 'text',
-				//text: 'Goto',
+				text: 'Goto',
 			})
 
 			for (let cue = 0; cue < cl.length; cue++) {
-				const cuuid = instance.cleanUUID(cl[cue]['uuid'])
-				// COLOR
-				let color = [0, 0, 0]
-				if (cl[cue]['uiColor'] !== '' && cl[cue]['uiColor'] !== 'transparent') {
-					const parsedColor = instance.getColorFromHex(cl[cue]['uiColor'])
+				const cueUUID = instance.cleanUUID(cl[cue].uuid)
+				let color: [number, number, number] = [0, 0, 0]
+				if (cl[cue].uiColor !== '' && cl[cue].uiColor !== 'transparent') {
+					const parsedColor = instance.getColorFromHex(cl[cue].uiColor)
 					if (parsedColor !== null) {
 						color = parsedColor
 					}
 				}
 				playlistsPresets.push({
 					category: `${playlist + 1} - ${plName}`,
-					name: `$(Modulo_Player:cue_${cuuid}_name)`,
+					name: `$(Modulo_Player:cue_${cueUUID}_name)`,
 					type: 'button',
 					style: {
-						text: `$(Modulo_Player:cue_${cuuid}_name)`,
+						text: `$(Modulo_Player:cue_${cueUUID}_name)`,
 						size: textSize,
 						color: combineRgb(255, 255, 255),
 						bgcolor: combineRgb(color[0], color[1], color[2]),
@@ -444,10 +437,10 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 								{
 									actionId: 'goto_cue',
 									options: {
-										cueUUID: `${cl[cue]['uuid']}`,
-										plUUID: `${plID}`,
-										index: `${cue + 1}`,
-										pl: playlist.toString(),
+										cueUUID: cueUUID,
+										plUUID: plID,
+										index: cue + 1,
+										pl: uuid,
 									},
 								},
 							],
@@ -457,14 +450,12 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					feedbacks: [
 						{
 							feedbackId: 'color_cue',
-							options: {
-								uuid: cuuid,
-							},
+							options: { pl: uuid, cue: cueUUID },
 						},
 						{
 							feedbackId: 'current_Cue',
 							options: {
-								current_Cue: cue + 1, // pls[playlist]['index'],
+								current_Cue: cueUUID,
 								pl: uuid,
 							},
 							style: {
@@ -480,18 +471,17 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 				category: `${playlist + 1} - ${plName}`,
 				name: `Preload`,
 				type: 'text',
-				//text: 'Goto',
+				text: 'Preload',
 			})
 
 			for (let cue = 0; cue < cl.length; cue++) {
-				const cuuid = instance.cleanUUID(cl[cue]['uuid'])
-
+				const cueUUID = instance.cleanUUID(cl[cue].uuid)
 				playlistsPresets.push({
 					category: `${playlist + 1} - ${plName}`,
-					name: `Preload\n$(Modulo_Player:cue_${cuuid}_name)`,
+					name: `Preload\n$(Modulo_Player:cue_${cueUUID}_name)`,
 					type: 'button',
 					style: {
-						text: `Preload\n$(Modulo_Player:cue_${cuuid}_name)`,
+						text: `Preload\n$(Modulo_Player:cue_${cueUUID}_name)`,
 						size: textSize,
 						color: combineRgb(255, 255, 255),
 						bgcolor: instance.grayModuloPlayer,
@@ -502,10 +492,10 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 								{
 									actionId: 'preload_cue',
 									options: {
-										cueUUID: `${cl[cue]['uuid']}`,
-										plUUID: `${plID}`,
-										index: `${cue + 1}`,
-										pl: playlist.toString(),
+										cueUUID: cueUUID,
+										plUUID: plID,
+										index: cue + 1,
+										pl: uuid,
 									},
 								},
 							],
@@ -515,14 +505,12 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					feedbacks: [
 						{
 							feedbackId: 'color_cue',
-							options: {
-								uuid: cuuid,
-							},
+							options: { pl: uuid, cue: cueUUID },
 						},
 						{
 							feedbackId: 'current_Cue',
 							options: {
-								current_Cue: cue + 1, // pls[playlist]['index'],
+								current_Cue: cueUUID,
 								pl: uuid,
 							},
 							style: {
@@ -538,7 +526,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 				category: `${playlist + 1} - ${plName}`,
 				name: `Variables`,
 				type: 'text',
-				//text: 'Goto',
+				text: 'Variables',
 			})
 
 			// GRAND MASTER VARIABLES //$(Modulo_Player:pl_${instance.cleanUUID(plID)}_grandMasterFader)
@@ -612,6 +600,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'save',
+										options: {},
 						},
 					],
 					up: [],
@@ -636,6 +625,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'backup',
+									options: {},
 						},
 					],
 					up: [],
@@ -660,6 +650,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'rescan_medias',
+								options: {},
 						},
 					],
 					up: [],
@@ -684,6 +675,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'rescan_medias_force',
+								options: {},
 						},
 					],
 					up: [],
@@ -708,6 +700,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'remove_missing_medias',
+								options: {},
 						},
 					],
 					up: [],
@@ -732,6 +725,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'send_show_to_remote',
+								options: {},
 						},
 					],
 					up: [],
@@ -762,6 +756,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'spydog_reboot_mp',
+								options: {},
 						},
 					],
 					up: [],
@@ -786,6 +781,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'spydog_power_off_mp',
+								options: {},
 						},
 					],
 					up: [],
@@ -810,6 +806,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'spydog_start_mp',
+								options: {},
 						},
 					],
 					up: [],
@@ -833,6 +830,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					down: [
 						{
 							actionId: 'spydog_stop_mp',
+								options: {},
 						},
 					],
 					up: [],
@@ -852,7 +850,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 			category: `Variables`,
 			name: 'General',
 			type: 'text',
-			//text: 'Generals',
+			text: 'General',
 		})
 
 		// STATUS
@@ -915,7 +913,7 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 				text: `Name\nMaster\nor\nSlave`,
 				size: textSize,
 				color: combineRgb(255, 255, 255),
-				bgcolor: instance.getCombineRGBFromHex(instance.states['color']),
+				bgcolor: instance.getCombineRGBFromHex(String(instance.states['color'])) ?? 0,
 			},
 			steps: [
 				{
@@ -1039,11 +1037,10 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 			category: `Variables`,
 			name: 'Dynamic Info',
 			type: 'text',
-			//text: 'Generals',
+			text: 'Dynamic Info',
 		})
 
-		const dynamicArray: { [key: string]: any } = instance.dynamicInfo
-		for (var key in dynamicArray) {
+		for (const key of Object.keys(instance.dynamicInfo)) {
 			if (key === 'color') {
 				variablesPresets.push({
 					category: `Variables`,
@@ -1053,20 +1050,10 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 						text: `Color Player`,
 						size: textSize,
 						color: combineRgb(255, 255, 255),
-						bgcolor: instance.getCombineRGBFromHex(instance.states['color']),
+						bgcolor: instance.getCombineRGBFromHex(String(instance.states['color'])) ?? 0,
 					},
-					steps: [
-						{
-							down: [],
-							up: [],
-						},
-					],
-					feedbacks: [
-						{
-							feedbackId: 'color',
-							options: {},
-						},
-					],
+					steps: [{ down: [], up: [] }],
+					feedbacks: [{ feedbackId: 'color', options: {} }],
 				})
 			} else {
 				variablesPresets.push({
@@ -1077,14 +1064,9 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 						text: `$(Modulo_Player:${key})`,
 						size: textSize,
 						color: combineRgb(255, 255, 255),
-						//bgcolor: instance.getCombineRGBFromHex(instance.states['color']),
+						bgcolor: 0,
 					},
-					steps: [
-						{
-							down: [],
-							up: [],
-						},
-					],
+					steps: [{ down: [], up: [] }],
 					feedbacks: [],
 				})
 			}
@@ -1095,11 +1077,10 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 			category: `Variables`,
 			name: 'Static Info',
 			type: 'text',
-			//text: 'Generals',
+			text: 'Static Info',
 		})
 
-		const staticInfo: { [key: string]: any } = instance.staticInfo
-		for (var key in staticInfo) {
+		for (const key of Object.keys(instance.staticInfo)) {
 			variablesPresets.push({
 				category: `Variables`,
 				name: `(Modulo_Player:${key})`,
@@ -1108,14 +1089,9 @@ export function getPresets(instance: MPinstance): CompanionPresetDefinitions {
 					text: `$(Modulo_Player:${key})`,
 					size: textSize,
 					color: combineRgb(255, 255, 255),
-					//bgcolor: instance.getCombineRGBFromHex(instance.states['color']),
+					bgcolor: 0,
 				},
-				steps: [
-					{
-						down: [],
-						up: [],
-					},
-				],
+				steps: [{ down: [], up: [] }],
 				feedbacks: [],
 			})
 		}
