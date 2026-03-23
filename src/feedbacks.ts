@@ -30,6 +30,13 @@ export function UpdateFeedbacks(instance: MPinstance): void {
 			options: [
 				{
 					type: 'textinput',
+					label: 'Legacy Cue UUID',
+					id: 'uuid',
+					default: '',
+					isVisible: () => false,
+				},
+				{
+					type: 'textinput',
 					label: 'Playlist UUID',
 					id: 'pl',
 					default: '',
@@ -44,7 +51,7 @@ export function UpdateFeedbacks(instance: MPinstance): void {
 				},
 			],
 			callback: (feedback) => {
-				const cueUuid = feedback.options.cue as string
+				const cueUuid = (feedback.options.cue as string) || (feedback.options.uuid as string)
 				const colorStr = instance.getVariableValue(`cue_${cueUuid}_color`)
 				if (typeof colorStr === 'string') {
 					return { bgcolor: parseInt(colorStr, 10) }
@@ -77,12 +84,17 @@ export function UpdateFeedbacks(instance: MPinstance): void {
 			],
 			callback: (feedback) => {
 				const plUuid = feedback.options.pl as string
-				const cueUUID = feedback.options.current_Cue as string
+				const currentCue = feedback.options.current_Cue
+				const currentIndex = instance.states[`pl_${plUuid}_currentIndex`]
+				if (typeof currentCue === 'number') {
+					return currentIndex === currentCue
+				}
+				if (typeof currentCue !== 'string' || currentCue === '') return false
 				const playlist = instance.playLists.find((p) => instance.cleanUUID(p.uuid) === plUuid)
 				if (!playlist) return false
-				const cueIndex = playlist.cues.findIndex((c) => instance.cleanUUID(c.uuid) === cueUUID)
+				const cueIndex = playlist.cues.findIndex((c) => instance.cleanUUID(c.uuid) === currentCue)
 				if (cueIndex === -1) return false
-				return instance.states[`pl_${plUuid}_currentIndex`] === cueIndex + 1
+				return currentIndex === cueIndex + 1
 			},
 		},
 		status: {

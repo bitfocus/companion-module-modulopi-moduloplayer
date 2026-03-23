@@ -1,11 +1,38 @@
 import type { MPinstance } from './main.js'
 
+function resolvePlaylistUuid(instance: MPinstance, options: Record<string, unknown>): string | undefined {
+	const playlistOption = options.pl
+	if (typeof playlistOption === 'string') {
+		const byId = instance.dropdownPlayList.find((e) => e.id === playlistOption)
+		if (byId) return byId.uuid
+
+		const legacyIndex = Number.parseInt(playlistOption, 10)
+		if (!Number.isNaN(legacyIndex)) {
+			return instance.dropdownPlayList[legacyIndex]?.uuid
+		}
+	}
+
+	const playlistUuid = options.plUUID
+	if (typeof playlistUuid === 'string' && playlistUuid !== '') {
+		return playlistUuid
+	}
+
+	return undefined
+}
+
 export function UpdateActions(instance: MPinstance): void {
 	instance.setActionDefinitions({
 		// LAUNCH TASK
 		launch_task: {
 			name: 'Launch Task',
 			options: [
+				{
+					id: 'task',
+					type: 'textinput',
+					label: 'Task UUID',
+					default: '',
+					isVisible: () => false,
+				},
 				{
 					id: 'tl',
 					type: 'dropdown',
@@ -16,8 +43,14 @@ export function UpdateActions(instance: MPinstance): void {
 			],
 			callback: async (event) => {
 				const tl = instance.dropdownTaskList.find((e) => e.id === event.options.tl)
-				if (!tl) return
-				instance.moduloplayer?.sendLaunchTask(tl.uuid)
+				if (tl) {
+					instance.moduloplayer?.sendLaunchTask(tl.uuid)
+					return
+				}
+
+				if (typeof event.options.task === 'string' && event.options.task !== '') {
+					instance.moduloplayer?.sendLaunchTask(event.options.task)
+				}
 			},
 		},
 
@@ -56,17 +89,17 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
 				const cueUUID = event.options.cueUUID as string
 				if (cueUUID) {
-					const playlist = instance.playLists.find((p) => p.uuid === pl.uuid)
+					const playlist = instance.playLists.find((p) => p.uuid === playlistUuid)
 					if (!playlist) return
-					const cueIndex = playlist.cues.findIndex((c) => instance.cleanUUID(c.uuid) === cueUUID)
+					const cueIndex = playlist.cues.findIndex((c) => instance.cleanUUID(c.uuid) === instance.cleanUUID(cueUUID))
 					if (cueIndex === -1) return
-					instance.moduloplayer?.sendGotoCue(pl.uuid, cueIndex + 1)
+					instance.moduloplayer?.sendGotoCue(playlistUuid, cueIndex + 1)
 				} else {
-					instance.moduloplayer?.sendGotoCue(pl.uuid, Number(event.options.index))
+					instance.moduloplayer?.sendGotoCue(playlistUuid, Number(event.options.index))
 				}
 			},
 		},
@@ -106,17 +139,17 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
 				const cueUUID = event.options.cueUUID as string
 				if (cueUUID) {
-					const playlist = instance.playLists.find((p) => p.uuid === pl.uuid)
+					const playlist = instance.playLists.find((p) => p.uuid === playlistUuid)
 					if (!playlist) return
-					const cueIndex = playlist.cues.findIndex((c) => instance.cleanUUID(c.uuid) === cueUUID)
+					const cueIndex = playlist.cues.findIndex((c) => instance.cleanUUID(c.uuid) === instance.cleanUUID(cueUUID))
 					if (cueIndex === -1) return
-					instance.moduloplayer?.sendPreloadCue(pl.uuid, cueIndex + 1)
+					instance.moduloplayer?.sendPreloadCue(playlistUuid, cueIndex + 1)
 				} else {
-					instance.moduloplayer?.sendPreloadCue(pl.uuid, Number(event.options.index))
+					instance.moduloplayer?.sendPreloadCue(playlistUuid, Number(event.options.index))
 				}
 			},
 		},
@@ -141,9 +174,9 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				instance.moduloplayer?.sendPlay(pl.uuid)
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				instance.moduloplayer?.sendPlay(playlistUuid)
 			},
 		},
 
@@ -167,9 +200,9 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				instance.moduloplayer?.sendPause(pl.uuid)
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				instance.moduloplayer?.sendPause(playlistUuid)
 			},
 		},
 
@@ -193,9 +226,9 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				instance.moduloplayer?.sendNextCue(pl.uuid)
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				instance.moduloplayer?.sendNextCue(playlistUuid)
 			},
 		},
 
@@ -219,9 +252,9 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				instance.moduloplayer?.sendPrevCue(pl.uuid)
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				instance.moduloplayer?.sendPrevCue(playlistUuid)
 			},
 		},
 
@@ -261,9 +294,9 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				instance.moduloplayer?.sendGrandMasterFader(pl.uuid, event.options.value as number, event.options.duration as number)
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				instance.moduloplayer?.sendGrandMasterFader(playlistUuid, event.options.value as number, event.options.duration as number)
 			},
 		},
 
@@ -294,14 +327,14 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				const plName = `pl_${instance.cleanUUID(pl.uuid)}_grandMasterFader`
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				const plName = `pl_${instance.cleanUUID(playlistUuid)}_grandMasterFader`
 				const value = Number(instance.states[plName])
 				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
 				let newValue = value + addValue
 				if (newValue > 100) newValue = 100
-				instance.moduloplayer?.sendGrandMasterFader(pl.uuid, newValue, 0)
+				instance.moduloplayer?.sendGrandMasterFader(playlistUuid, newValue, 0)
 				instance.states[plName] = newValue
 			},
 		},
@@ -333,14 +366,14 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				const plName = `pl_${instance.cleanUUID(pl.uuid)}_grandMasterFader`
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				const plName = `pl_${instance.cleanUUID(playlistUuid)}_grandMasterFader`
 				const value = Number(instance.states[plName])
 				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
 				let newValue = value - addValue
 				if (newValue < 0) newValue = 0
-				instance.moduloplayer?.sendGrandMasterFader(pl.uuid, newValue, 0)
+				instance.moduloplayer?.sendGrandMasterFader(playlistUuid, newValue, 0)
 				instance.states[plName] = newValue
 			},
 		},
@@ -381,9 +414,9 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				instance.moduloplayer?.sendAudioMaster(pl.uuid, event.options.value as number, event.options.duration as number)
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				instance.moduloplayer?.sendAudioMaster(playlistUuid, event.options.value as number, event.options.duration as number)
 			},
 		},
 
@@ -414,14 +447,14 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				const plName = `pl_${instance.cleanUUID(pl.uuid)}_audioMaster`
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				const plName = `pl_${instance.cleanUUID(playlistUuid)}_audioMaster`
 				const value = Number(instance.states[plName])
 				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
 				let newValue = value + addValue
 				if (newValue > 100) newValue = 100
-				instance.moduloplayer?.sendAudioMaster(pl.uuid, newValue, 0)
+				instance.moduloplayer?.sendAudioMaster(playlistUuid, newValue, 0)
 				instance.states[plName] = newValue
 			},
 		},
@@ -453,14 +486,14 @@ export function UpdateActions(instance: MPinstance): void {
 				},
 			],
 			callback: async (event) => {
-				const pl = instance.dropdownPlayList.find((e) => e.id === event.options.pl)
-				if (!pl) return
-				const plName = `pl_${instance.cleanUUID(pl.uuid)}_audioMaster`
+				const playlistUuid = resolvePlaylistUuid(instance, event.options)
+				if (!playlistUuid) return
+				const plName = `pl_${instance.cleanUUID(playlistUuid)}_audioMaster`
 				const value = Number(instance.states[plName])
 				const addValue = typeof event.options.value === 'number' ? event.options.value : 0
 				let newValue = value - addValue
 				if (newValue < 0) newValue = 0
-				instance.moduloplayer?.sendAudioMaster(pl.uuid, newValue, 0)
+				instance.moduloplayer?.sendAudioMaster(playlistUuid, newValue, 0)
 				instance.states[plName] = newValue
 			},
 		},
@@ -554,3 +587,6 @@ export function UpdateActions(instance: MPinstance): void {
 		},
 	})
 }
+
+
+

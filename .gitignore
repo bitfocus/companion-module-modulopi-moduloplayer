@@ -10,3 +10,5 @@ DEBUG-*
 version_javascript/
 .DS_Store
 .claude
+claude.md
+/AGENT_NOTES
