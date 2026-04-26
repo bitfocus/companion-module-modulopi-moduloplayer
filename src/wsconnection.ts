@@ -17,12 +17,7 @@ export class WSConnection {
 	private reconnectinterval = this.reconnectmin
 	private shouldBeConnected = false
 
-	constructor(
-		instance: MPinstance,
-		label: string,
-		onConnected: OnConnectedCallback,
-		onMessage: OnMessageCallback,
-	) {
+	constructor(instance: MPinstance, label: string, onConnected: OnConnectedCallback, onMessage: OnMessageCallback) {
 		this.instance = instance
 		this.label = label
 		this.onConnectedCb = onConnected
@@ -57,15 +52,15 @@ export class WSConnection {
 				}
 			})
 
-			this.websocket.on('error', (error: Error) => {
-				this.instance.log('error', `WEBSOCKET ${this.label} ERROR — ${error.message}`)
+			this.websocket.on('error', (_error: Error) => {
+				this.instance.log('error', `WEBSOCKET ${this.label} ERROR — ${_error.message}`)
 				this.onConnectedCb(false)
 			})
 
 			this.websocket.on('message', (data: { toString: () => string }) => {
 				this.onMessageCb(data.toString())
 			})
-		} catch (error) {
+		} catch (_error) {
 			this.disconnect()
 			this.scheduleReconnect()
 		}
@@ -87,6 +82,9 @@ export class WSConnection {
 	destroy(): void {
 		if (this.wsTimeout) clearTimeout(this.wsTimeout)
 		this.shouldBeConnected = false
+		if (this.websocket) {
+			this.websocket.terminate()
+		}
 		this.websocket = null
 		this.onConnectedCb(false)
 		this.instance.log('debug', `WEBSOCKET ${this.label} destroyed`)

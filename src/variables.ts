@@ -1,4 +1,4 @@
-import { CompanionVariableValues, combineRgb } from '@companion-module/base/dist/index.js'
+import { CompanionVariableValues, combineRgb } from '@companion-module/base'
 import type { MPinstance } from './main.js'
 
 export function UpdateVariableDefinitions(instance: MPinstance): void {
@@ -95,7 +95,7 @@ export function InitVariableDefinitions(instance: MPinstance): void {
 		}
 	}
 
-	// Restaure les valeurs Spydog du cache states (évite le $NA après chaque updateInstance)
+	// Restore Spydog values from the states cache (avoids $NA after each updateInstance)
 	for (const [key, value] of Object.entries(instance.states)) {
 		variables[key] = value
 	}

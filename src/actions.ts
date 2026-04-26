@@ -31,7 +31,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Task UUID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'tl',
@@ -71,14 +71,14 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Cue UUID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'plUUID',
 					type: 'textinput',
 					label: 'Playlist uuid',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'pl',
@@ -121,14 +121,14 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Cue UUID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'plUUID',
 					type: 'textinput',
 					label: 'Playlist uuid',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'pl',
@@ -163,7 +163,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist UUID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'pl',
@@ -189,7 +189,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist UUID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'pl',
@@ -215,7 +215,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist UUID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'pl',
@@ -234,14 +234,14 @@ export function UpdateActions(instance: MPinstance): void {
 
 		// PREV CUE
 		prev_cue: {
-			name: 'Next Cue on Playlist',
+			name: 'Previous Cue on Playlist',
 			options: [
 				{
 					id: 'plUUID',
 					type: 'textinput',
 					label: 'Playlist UUID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'pl',
@@ -274,7 +274,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist ID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'value',
@@ -296,7 +296,11 @@ export function UpdateActions(instance: MPinstance): void {
 			callback: async (event) => {
 				const playlistUuid = resolvePlaylistUuid(instance, event.options)
 				if (!playlistUuid) return
-				instance.moduloplayer?.sendGrandMasterFader(playlistUuid, event.options.value as number, event.options.duration as number)
+				instance.moduloplayer?.sendGrandMasterFader(
+					playlistUuid,
+					event.options.value as number,
+					event.options.duration as number,
+				)
 			},
 		},
 
@@ -315,7 +319,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist ID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'value',
@@ -354,7 +358,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist ID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'value',
@@ -394,7 +398,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist ID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'value',
@@ -416,7 +420,11 @@ export function UpdateActions(instance: MPinstance): void {
 			callback: async (event) => {
 				const playlistUuid = resolvePlaylistUuid(instance, event.options)
 				if (!playlistUuid) return
-				instance.moduloplayer?.sendAudioMaster(playlistUuid, event.options.value as number, event.options.duration as number)
+				instance.moduloplayer?.sendAudioMaster(
+					playlistUuid,
+					event.options.value as number,
+					event.options.duration as number,
+				)
 			},
 		},
 
@@ -435,7 +443,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist ID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'value',
@@ -474,7 +482,7 @@ export function UpdateActions(instance: MPinstance): void {
 					type: 'textinput',
 					label: 'Playlist ID',
 					default: '',
-					isVisible: () => false,
+					isVisibleExpression: 'false',
 				},
 				{
 					id: 'value',
@@ -587,6 +595,3 @@ export function UpdateActions(instance: MPinstance): void {
 		},
 	})
 }
-
-
-

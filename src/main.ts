@@ -46,7 +46,7 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	public dynamicInfo: Partial<SpydogDynamicInfo> = {}
 	public staticInfo: Partial<SpydogStaticInfo> = {}
 
-	// Snapshot structurel pour éviter les updateInstance() inutiles
+	// Structural snapshot to avoid unnecessary updateInstance() calls
 	private _lastStructuralHash: string | null = null
 
 	// COLORS
@@ -89,6 +89,10 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	}
 
 	async destroy(): Promise<void> {
+		if (this.pollAPI !== null) {
+			clearInterval(this.pollAPI)
+			this.pollAPI = null
+		}
 		this.mpConnection.destroy()
 		this.sdConnection.destroy()
 		this.log('debug', 'destroy')
@@ -138,9 +142,9 @@ export class MPinstance extends InstanceBase<ModuloPlayConfig> {
 	}
 
 	updateInstance(): void {
-		// Hash structurel uniquement : UUIDs, noms, couleurs, sdConnected
-		// Les champs dynamiques (currentIndex, grandMasterFader, audioMaster) sont exclus
-		// pour éviter un re-enregistrement à chaque poll
+		// Structural hash only: UUIDs, names, colors, sdConnected.
+		// Dynamic fields (currentIndex, grandMasterFader, audioMaster) are excluded
+		// to avoid re-registering on every poll tick.
 		const structHash = JSON.stringify({
 			sdConnected: this.sdConnected,
 			tasks: this.tasksList.map((t) => ({ uuid: t.uuid, name: t.name, uiColor: t.uiColor })),

@@ -1,15 +1,15 @@
 // ============================================================
-// DONNÉES BRUTES JSON (réponses de l'API ModuloPlayer)
+// RAW JSON DATA (responses from the ModuloPlayer API)
 // ============================================================
 
-/** Un cue tel que renvoyé par get.list.playlists level:cue */
+/** A cue as returned by get.list.playlists level:cue */
 export interface RawCue {
 	uuid: string
 	name: string
 	uiColor: string
 }
 
-/** Une playlist telle que renvoyée par get.list.playlists */
+/** A playlist as returned by get.list.playlists */
 export interface RawPlaylist {
 	uuid: string
 	name: string
@@ -19,14 +19,14 @@ export interface RawPlaylist {
 	cues: RawCue[]
 }
 
-/** Une tâche telle que renvoyée par get.list.tasks */
+/** A task as returned by get.list.tasks */
 export interface RawTask {
 	uuid: string
 	name: string
 	uiColor: string
 }
 
-/** Informations statiques renvoyées par Spydog */
+/** Static information returned by Spydog */
 export interface SpydogStaticInfo {
 	CPU: string
 	GpuBrand: string
@@ -38,7 +38,7 @@ export interface SpydogStaticInfo {
 	totalMemory: number
 }
 
-/** Informations dynamiques renvoyées par Spydog */
+/** Dynamic information returned by Spydog */
 export interface SpydogDynamicInfo {
 	clusterId: string
 	color: string
@@ -62,10 +62,10 @@ export interface SpydogDynamicInfo {
 }
 
 // ============================================================
-// DONNÉES INTERNES (structures utilisées par Companion)
+// INTERNAL DATA (structures used by Companion)
 // ============================================================
 
-/** Entrée dans le dropdown des playlists (actions/presets) */
+/** Entry in the playlist dropdown (actions/presets) */
 export interface DropdownPlaylistEntry {
 	id: string
 	label: string
@@ -73,9 +73,9 @@ export interface DropdownPlaylistEntry {
 }
 
 /**
- * Dictionnaire d'état runtime.
- * Les valeurs sont string | number | boolean car setVariableValues de Companion
- * accepte CompanionVariableValue, et les états sont lus avec parseInt() dans les actions.
+ * Runtime state dictionary.
+ * Values are string | number | boolean because Companion's setVariableValues
+ * accepts CompanionVariableValue, and states are read with parseInt() in actions.
  */
 export type StateValue = string | number | boolean
 
@@ -84,7 +84,7 @@ export interface StateMap {
 }
 
 // ============================================================
-// CALLBACKS WSCONNECTION
+// WSCONNECTION CALLBACKS
 // ============================================================
 
 export type OnConnectedCallback = (isConnected: boolean) => void

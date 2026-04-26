@@ -1,10 +1,5 @@
 import { MPinstance } from './main.js'
-import {
-	RPC_ID,
-	msgSpydogStaticInfo,
-	msgSpydogDynamicInfo,
-	msgComputerAction,
-} from './messages.js'
+import { RPC_ID, msgSpydogStaticInfo, msgSpydogDynamicInfo, msgComputerAction } from './messages.js'
 import type { SpydogStaticInfo, SpydogDynamicInfo } from './types.js'
 
 interface RpcResponse {
@@ -22,9 +17,9 @@ export class SpyDog {
 	public messageManager(data: string): void {
 		const datas = JSON.parse(data) as RpcResponse
 		if (datas.id === RPC_ID.SPYDOG_DYNAMIC_INFO) {
-			this.setDynamicInfo(datas.result as [SpydogDynamicInfo])
+			void this.setDynamicInfo(datas.result as [SpydogDynamicInfo])
 		} else if (datas.id === RPC_ID.SPYDOG_STATIC_INFO) {
-			this.setStaticInfo(datas.result as [SpydogStaticInfo])
+			void this.setStaticInfo(datas.result as [SpydogStaticInfo])
 		}
 	}
 
@@ -51,13 +46,13 @@ export class SpyDog {
 			const value =
 				key === 'detacastTemperature' && (raw === null || raw === undefined || (typeof raw === 'number' && raw < 0))
 					? 'No Deltacast'
-					: (raw as string | number | boolean)
+					: raw
 			if (this.instance.states[key] === value) continue
 			this.instance.states[key] = value
 			this.instance.setVariableValues({ [key]: value })
 			this.instance.checkFeedbacks(key)
 		}
-		// Si detacastTemperature est absent de la réponse (pas de matériel Deltacast)
+		// If detacastTemperature is absent from the response (no Deltacast hardware)
 		if (!('detacastTemperature' in info)) {
 			const v = 'No Deltacast'
 			if (this.instance.states['detacastTemperature'] !== v) {
